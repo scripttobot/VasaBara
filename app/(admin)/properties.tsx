@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, FlatList, Pressable, Platform } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/lib/app-context';
+import { db } from '@/lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { Property } from '@/constants/types';
 import Colors from '@/constants/colors';
 
@@ -14,31 +16,36 @@ export default function AdminProperties() {
   const insets = useSafeAreaInsets();
   const { properties } = useApp();
   const [filter, setFilter] = useState<FilterType>('all');
-  const [localProperties, setLocalProperties] = useState(properties);
 
-  const filteredProperties = localProperties.filter(p => {
+  const filteredProperties = properties.filter(p => {
     if (filter === 'pending') return !p.verified;
     if (filter === 'verified') return p.verified;
     if (filter === 'featured') return p.featured;
     return true;
   });
 
-  const toggleVerify = (id: string) => {
-    setLocalProperties(prev => prev.map(p =>
-      p.id === id ? { ...p, verified: !p.verified } : p
-    ));
+  const toggleVerify = async (id: string, current: boolean) => {
+    try {
+      await updateDoc(doc(db, 'properties', id), { verified: !current });
+    } catch (e) {
+      console.error('Error toggling verify:', e);
+    }
   };
 
-  const toggleFeatured = (id: string) => {
-    setLocalProperties(prev => prev.map(p =>
-      p.id === id ? { ...p, featured: !p.featured } : p
-    ));
+  const toggleFeatured = async (id: string, current: boolean) => {
+    try {
+      await updateDoc(doc(db, 'properties', id), { featured: !current });
+    } catch (e) {
+      console.error('Error toggling featured:', e);
+    }
   };
 
-  const toggleAvailable = (id: string) => {
-    setLocalProperties(prev => prev.map(p =>
-      p.id === id ? { ...p, available: !p.available } : p
-    ));
+  const toggleAvailable = async (id: string, current: boolean) => {
+    try {
+      await updateDoc(doc(db, 'properties', id), { available: !current });
+    } catch (e) {
+      console.error('Error toggling available:', e);
+    }
   };
 
   const getTypeLabel = (type: string) => {
@@ -92,7 +99,7 @@ export default function AdminProperties() {
       <View style={styles.actionRow}>
         <Pressable
           style={[styles.actionBtn, { backgroundColor: item.verified ? Colors.dangerLight : Colors.successLight }]}
-          onPress={() => toggleVerify(item.id)}
+          onPress={() => toggleVerify(item.id, item.verified)}
         >
           <Ionicons
             name={item.verified ? 'close-circle' : 'checkmark-circle'}
@@ -106,7 +113,7 @@ export default function AdminProperties() {
 
         <Pressable
           style={[styles.actionBtn, { backgroundColor: item.featured ? Colors.accentLight : '#F0EEFF' }]}
-          onPress={() => toggleFeatured(item.id)}
+          onPress={() => toggleFeatured(item.id, item.featured)}
         >
           <Ionicons
             name={item.featured ? 'star-outline' : 'star'}
@@ -120,7 +127,7 @@ export default function AdminProperties() {
 
         <Pressable
           style={[styles.actionBtn, { backgroundColor: item.available ? Colors.dangerLight : Colors.successLight }]}
-          onPress={() => toggleAvailable(item.id)}
+          onPress={() => toggleAvailable(item.id, item.available)}
         >
           <Ionicons
             name={item.available ? 'eye-off' : 'eye'}
@@ -136,7 +143,7 @@ export default function AdminProperties() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
         <Text style={styles.title}>প্রপার্টি ম্যানেজমেন্ট</Text>
-        <Text style={styles.subtitle}>মোট {localProperties.length}টি প্রপার্টি</Text>
+        <Text style={styles.subtitle}>মোট {properties.length}টি প্রপার্টি</Text>
       </View>
 
       <View style={styles.filterRow}>

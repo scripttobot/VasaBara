@@ -1,10 +1,11 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { Platform, StyleSheet, useColorScheme, View } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
+import { useApp } from "@/lib/app-context";
 import Colors from "@/constants/colors";
 
 const ADMIN_ACCENT = '#6C5CE7';
@@ -102,6 +103,18 @@ function ClassicTabLayout() {
 }
 
 export default function AdminTabLayout() {
+  const { userRole, isLoggedIn } = useApp();
+
+  useEffect(() => {
+    if (!isLoggedIn || userRole !== 'admin') {
+      router.replace('/');
+    }
+  }, [isLoggedIn, userRole]);
+
+  if (!isLoggedIn || userRole !== 'admin') {
+    return null;
+  }
+
   if (isLiquidGlassAvailable()) {
     return <NativeTabLayout />;
   }

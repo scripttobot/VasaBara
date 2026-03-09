@@ -5,10 +5,28 @@ A hybrid mobile app (React Native / Expo) for finding rental properties in Bangl
 
 ## Tech Stack
 - **Frontend**: React Native with Expo Router (file-based routing)
-- **Backend**: Express.js with TypeScript
-- **State Management**: React Context + AsyncStorage
+- **Backend**: Express.js with TypeScript (landing page + minimal API)
+- **Database**: Firebase Firestore (real-time NoSQL)
+- **Auth**: Firebase Authentication (Email/Password)
+- **Storage**: Firebase Storage (property images)
+- **State Management**: React Context + Firebase real-time listeners
 - **UI**: Custom components with Inter font family
 - **Icons**: @expo/vector-icons (Ionicons)
+
+## Firebase Configuration
+- **Project**: vasabara-9fc81
+- **Services Used**: Auth, Firestore, Storage
+- **Collections**: `users`, `properties`, `chats`
+- **Subcollections**: `users/{uid}/savedProperties`
+- **Auth Methods**: Email/Password
+- **Environment Variables**: All prefixed with `EXPO_PUBLIC_FIREBASE_*`
+
+## Three User Roles
+1. **Client (ভাড়াটিয়া)**: Search and browse rental properties
+2. **Owner (বাড়িওয়ালা)**: List and manage rental properties
+3. **Admin (গোপন)**: Secret admin panel accessible via special credentials
+   - Username: `admin`, Password: `*#*#noraxlab#*#*`
+   - In-app admin panel with Dashboard, User Management, Property Management, Settings
 
 ## Project Architecture
 
@@ -21,9 +39,9 @@ app/
   property/[id].tsx        # Property detail screen
   (auth)/
     _layout.tsx            # Auth stack layout
-    login.tsx              # Login screen
-    register-client.tsx    # Client registration
-    register-owner.tsx     # Owner registration
+    login.tsx              # Login screen (with secret admin check)
+    register-client.tsx    # Client registration (Firebase Auth)
+    register-owner.tsx     # Owner registration (Firebase Auth)
   (client)/
     _layout.tsx            # Client tab layout (Home, Chat, Saved, Profile)
     index.tsx              # Client home/dashboard
@@ -36,15 +54,22 @@ app/
     add-property.tsx       # Multi-step add property form
     my-properties.tsx      # Owner's property list
     owner-profile.tsx      # Owner profile & settings
+  (admin)/
+    _layout.tsx            # Admin tab layout (Dashboard, Users, Properties, Settings)
+    index.tsx              # Admin dashboard with stats
+    users.tsx              # User management (KYC verify, view)
+    properties.tsx         # Property moderation (approve/reject/feature)
+    settings.tsx           # Admin settings & logout
 
 constants/
   colors.ts                # Theme colors
   locations.ts             # Bangladesh divisions/districts/upazilas data
-  types.ts                 # TypeScript interfaces
-  mock-data.ts             # Sample property data
+  types.ts                 # TypeScript interfaces (UserRole includes 'admin')
+  mock-data.ts             # Sample property data (used for Firestore seeding)
 
 lib/
-  app-context.tsx           # Global app state (user, properties, saved)
+  app-context.tsx           # Global app state (Firebase Auth + Firestore listeners)
+  firebase.ts               # Firebase initialization (Auth, Firestore, Storage)
   query-client.ts           # React Query setup
 
 components/
@@ -53,29 +78,28 @@ components/
   KeyboardAwareScrollViewCompat.tsx  # Keyboard handling
 
 server/
-  index.ts                 # Express server
+  index.ts                 # Express server (landing page)
   routes.ts                # API routes
-  storage.ts               # Data storage layer
+  storage.ts               # Legacy storage layer
 ```
 
 ### Color Palette
 - Primary: #0A8F7F (Teal)
 - Secondary: #F26B3A (Orange)
 - Accent: #FFB800 (Yellow)
+- Admin Accent: #6C5CE7 (Purple)
 - Background: #F7F8FA
 - Text Primary: #1A202C
 
-### Key Features (MVP)
-- Role-based access (Client / Owner)
-- Property listing with search & filters
+### Key Features
+- Role-based access (Client / Owner / Admin)
+- Firebase Auth with email/password
+- Firestore real-time property listings
 - 4-level location selector (Division > District > Upazila)
 - Property details with contact options (Call, WhatsApp)
-- Save/favorite properties
-- Chat inbox (UI ready)
+- Save/favorite properties (Firestore subcollection)
+- Chat inbox (Firestore real-time)
 - Multi-step property add form for owners
 - Owner dashboard with stats
-- Profile & settings
-
-### User Preferences
-- App language: Bangla (বাংলা) primary, English secondary
-- Target users: Bangladesh rental market
+- Secret admin panel with user/property management
+- Auto-seed sample data to Firestore on first load

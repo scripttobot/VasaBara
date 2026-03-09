@@ -68,3 +68,13 @@ task = "shell.exec"
 args = "npm run expo:dev"
 waitForPort = 8081
 ensurePreviewReachable = "/status"
+
+[userenv]
+
+[userenv.shared]
+EXPO_PUBLIC_FIREBASE_API_KEY = "AIzaSyClYK2V3JYMtRBbjCm3CVM8Aub3_seyv0o"
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = "vasabara-9fc81.firebaseapp.com"
+EXPO_PUBLIC_FIREBASE_PROJECT_ID = "vasabara-9fc81"
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = "vasabara-9fc81.firebasestorage.app"
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "10835535997"
+EXPO_PUBLIC_FIREBASE_APP_ID = "1:10835535997:web:d581aee854e31a0e602914"

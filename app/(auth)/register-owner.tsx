@@ -25,11 +25,13 @@ export default function RegisterOwnerScreen() {
     }
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
-    const success = await register({ name, email, phone, whatsapp, nidNumber }, 'owner');
+    const success = await register({ name, email, phone, whatsapp, nidNumber }, 'owner', password);
     setLoading(false);
     if (success) {
       router.dismissAll();
       router.replace('/(owner)');
+    } else {
+      Alert.alert('ত্রুটি', 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। ইমেইল আগে ব্যবহার হয়ে থাকতে পারে বা পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।');
     }
   };
 

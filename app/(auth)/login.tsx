@@ -22,25 +22,20 @@ export default function LoginScreen() {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
 
-    if (email.trim() === 'admin' && password === '*#*#noraxlab#*#*') {
-      const success = await login(email, password, 'admin');
-      setLoading(false);
-      if (success) {
-        router.dismissAll();
-        router.replace('/(admin)');
-      }
-      return;
-    }
-
-    const success = await login(email, password);
+    const isAdmin = email.trim() === 'admin' && password === '*#*#noraxlab#*#*';
+    const success = await login(email, password, isAdmin ? 'admin' : undefined);
     setLoading(false);
+
     if (success) {
-      router.dismissAll();
-      if (userRole === 'owner') {
+      if (isAdmin) {
+        router.replace('/(admin)');
+      } else if (userRole === 'owner') {
         router.replace('/(owner)');
       } else {
         router.replace('/(client)');
       }
+    } else {
+      Alert.alert('ত্রুটি', 'ইমেইল বা পাসওয়ার্ড সঠিক নয়। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
   };
 

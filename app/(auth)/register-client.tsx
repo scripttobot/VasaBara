@@ -35,12 +35,15 @@ export default function RegisterClientScreen() {
     setLoading(true);
     const success = await register(
       { name, email, phone, whatsapp, gender, occupation, division: selectedDivision },
-      'client'
+      'client',
+      password
     );
     setLoading(false);
     if (success) {
       router.dismissAll();
       router.replace('/(client)');
+    } else {
+      Alert.alert('ত্রুটি', 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। ইমেইল আগে ব্যবহার হয়ে থাকতে পারে বা পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।');
     }
   };
 

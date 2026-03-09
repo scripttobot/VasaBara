@@ -1,60 +1,62 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, Platform, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, Pressable, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { User } from '@/constants/types';
 import Colors from '@/constants/colors';
 
 const ADMIN_ACCENT = '#6C5CE7';
 
-interface MockUser {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: 'client' | 'owner';
-  kycVerified: boolean;
-  blocked: boolean;
-  createdAt: string;
-}
-
-const MOCK_USERS: MockUser[] = [
-  { id: '1', name: 'আব্দুল করিম', email: 'karim@example.com', phone: '01712345678', role: 'owner', kycVerified: true, blocked: false, createdAt: '2025-01-15' },
-  { id: '2', name: 'ফাতেমা বেগম', email: 'fatema@example.com', phone: '01812345678', role: 'owner', kycVerified: true, blocked: false, createdAt: '2025-01-20' },
-  { id: '3', name: 'রহিম উদ্দিন', email: 'rahim@example.com', phone: '01912345678', role: 'owner', kycVerified: false, blocked: false, createdAt: '2025-02-01' },
-  { id: '4', name: 'সাকিব আলম', email: 'sakib@example.com', phone: '01612345678', role: 'client', kycVerified: false, blocked: false, createdAt: '2025-02-05' },
-  { id: '5', name: 'নুসরাত জাহান', email: 'nusrat@example.com', phone: '01512345678', role: 'client', kycVerified: true, blocked: false, createdAt: '2025-02-08' },
-  { id: '6', name: 'মোহাম্মদ হাসান', email: 'hasan@example.com', phone: '01412345678', role: 'owner', kycVerified: false, blocked: true, createdAt: '2025-02-10' },
-];
-
 export default function AdminUsers() {
   const insets = useSafeAreaInsets();
-  const [users, setUsers] = useState<MockUser[]>(MOCK_USERS);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState<'all' | 'client' | 'owner'>('all');
 
-  const filteredUsers = filterRole === 'all' ? users : users.filter(u => u.role === filterRole);
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, 'users'),
+      (snapshot) => {
+        const userList: User[] = [];
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          userList.push({ ...data, id: docSnap.id } as User);
+        });
+        setUsers(userList);
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Error fetching users:', error);
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
 
-  const toggleBlock = (userId: string) => {
-    setUsers(prev => prev.map(u =>
-      u.id === userId ? { ...u, blocked: !u.blocked } : u
-    ));
+  const filteredUsers = filterRole === 'all'
+    ? users.filter(u => u.role !== 'admin')
+    : users.filter(u => u.role === filterRole);
+
+  const toggleKYC = async (userId: string, currentStatus: boolean) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), { kycVerified: !currentStatus });
+    } catch (e) {
+      console.error('Error updating KYC:', e);
+    }
   };
 
-  const toggleKYC = (userId: string) => {
-    setUsers(prev => prev.map(u =>
-      u.id === userId ? { ...u, kycVerified: !u.kycVerified } : u
-    ));
-  };
-
-  const renderUser = ({ item }: { item: MockUser }) => (
-    <View style={[styles.userCard, item.blocked && styles.blockedCard]}>
+  const renderUser = ({ item }: { item: User }) => (
+    <View style={styles.userCard}>
       <View style={styles.userHeader}>
         <View style={styles.avatar}>
           <Ionicons name="person" size={22} color={Colors.textMuted} />
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{item.name}</Text>
+          <Text style={styles.userName}>{item.name || 'নাম নেই'}</Text>
           <Text style={styles.userEmail}>{item.email}</Text>
-          <Text style={styles.userPhone}>{item.phone}</Text>
+          <Text style={styles.userPhone}>{item.phone || '-'}</Text>
         </View>
         <View style={[styles.roleBadge, { backgroundColor: item.role === 'owner' ? Colors.secondaryLight : Colors.primaryLight }]}>
           <Text style={[styles.roleText, { color: item.role === 'owner' ? Colors.secondary : Colors.primary }]}>
@@ -66,7 +68,7 @@ export default function AdminUsers() {
       <View style={styles.userMeta}>
         <View style={styles.metaItem}>
           <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} />
-          <Text style={styles.metaText}>{item.createdAt}</Text>
+          <Text style={styles.metaText}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('bn-BD') : '-'}</Text>
         </View>
         <View style={[styles.kycBadge, { backgroundColor: item.kycVerified ? Colors.successLight : Colors.accentLight }]}>
           <Ionicons
@@ -83,7 +85,7 @@ export default function AdminUsers() {
       <View style={styles.userActions}>
         <Pressable
           style={[styles.actionBtn, { backgroundColor: item.kycVerified ? Colors.accentLight : Colors.successLight }]}
-          onPress={() => toggleKYC(item.id)}
+          onPress={() => toggleKYC(item.id, !!item.kycVerified)}
         >
           <Ionicons
             name={item.kycVerified ? 'close-circle' : 'checkmark-circle'}
@@ -94,29 +96,24 @@ export default function AdminUsers() {
             {item.kycVerified ? 'KYC বাতিল' : 'KYC অ্যাপ্রুভ'}
           </Text>
         </Pressable>
-
-        <Pressable
-          style={[styles.actionBtn, { backgroundColor: item.blocked ? Colors.successLight : Colors.dangerLight }]}
-          onPress={() => toggleBlock(item.id)}
-        >
-          <Ionicons
-            name={item.blocked ? 'checkmark' : 'ban'}
-            size={16}
-            color={item.blocked ? Colors.success : Colors.danger}
-          />
-          <Text style={[styles.actionBtnText, { color: item.blocked ? Colors.success : Colors.danger }]}>
-            {item.blocked ? 'আনব্লক' : 'ব্লক'}
-          </Text>
-        </Pressable>
       </View>
     </View>
   );
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={ADMIN_ACCENT} />
+        <Text style={styles.loadingText}>ইউজার লোড হচ্ছে...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
         <Text style={styles.title}>ইউজার ম্যানেজমেন্ট</Text>
-        <Text style={styles.subtitle}>মোট {users.length} জন ইউজার</Text>
+        <Text style={styles.subtitle}>মোট {users.filter(u => u.role !== 'admin').length} জন ইউজার</Text>
       </View>
 
       <View style={styles.filterRow}>
@@ -152,6 +149,8 @@ export default function AdminUsers() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  centered: { justifyContent: 'center', alignItems: 'center' },
+  loadingText: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 12 },
   header: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingBottom: 16 },
   title: { fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   subtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },
@@ -176,7 +175,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.borderLight,
   },
-  blockedCard: { borderColor: Colors.danger, opacity: 0.7 },
   userHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: {
     width: 44,
