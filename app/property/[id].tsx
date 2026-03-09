@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Pressable, ScrollView, Platform, Linking, Alert,
+  Image, Dimensions, NativeSyntheticEvent, NativeScrollEvent,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { useApp } from '@/lib/app-context';
 import Colors from '@/constants/colors';
 import { PROPERTY_TYPES, FURNISHING_OPTIONS, GENDER_PREFERENCES } from '@/constants/locations';
@@ -13,7 +16,7 @@ import * as Haptics from 'expo-haptics';
 export default function PropertyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { getPropertyById, toggleSaveProperty, isPropertySaved } = useApp();
+  const { getPropertyById, toggleSaveProperty, isPropertySaved, user, createChatThread } = useApp();
   const property = getPropertyById(id);
 
   if (!property) {
@@ -55,12 +58,49 @@ export default function PropertyDetailScreen() {
     { key: 'security', icon: 'shield-checkmark-outline' as const, label: 'সিকিউরিটি', available: property.security },
   ];
 
+  const hasImages = property.images && property.images.length > 0;
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const onImageScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    setActiveImageIndex(idx);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-        <View style={styles.imagePlaceholder}>
-          <Ionicons name="images-outline" size={48} color={Colors.textMuted} />
-          <Text style={styles.imagePlaceholderText}>{typeLabel}</Text>
+        <View style={styles.imageContainer}>
+          {hasImages ? (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={onImageScroll}
+              style={styles.imageScroller}
+            >
+              {property.images.map((uri, idx) => (
+                <Image
+                  key={idx}
+                  source={{ uri }}
+                  style={styles.propertyImage}
+                  resizeMode="cover"
+                />
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="images-outline" size={48} color={Colors.textMuted} />
+              <Text style={styles.imagePlaceholderText}>{typeLabel}</Text>
+            </View>
+          )}
+
+          {hasImages && property.images.length > 1 && (
+            <View style={styles.imageDots}>
+              {property.images.map((_, idx) => (
+                <View key={idx} style={[styles.imageDot, idx === activeImageIndex && styles.imageDotActive]} />
+              ))}
+            </View>
+          )}
 
           <View style={[styles.topBar, { top: insets.top + (Platform.OS === 'web' ? 67 : 10) }]}>
             <Pressable style={styles.topBarBtn} onPress={() => router.back()}>
@@ -80,6 +120,12 @@ export default function PropertyDetailScreen() {
             <View style={styles.verifiedTag}>
               <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
               <Text style={styles.verifiedTagText}>Verified</Text>
+            </View>
+          )}
+
+          {hasImages && (
+            <View style={styles.imageCounter}>
+              <Text style={styles.imageCounterText}>{activeImageIndex + 1}/{property.images.length}</Text>
             </View>
           )}
         </View>
@@ -201,7 +247,25 @@ export default function PropertyDetailScreen() {
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + (Platform.OS === 'web' ? 34 : 10) }]}>
         <Pressable style={({ pressed }) => [styles.callBtn, pressed && { opacity: 0.9 }]} onPress={handleCall}>
           <Ionicons name="call" size={20} color="#FFFFFF" />
-          <Text style={styles.callBtnText}>কল করুন</Text>
+          <Text style={styles.callBtnText}>কল</Text>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.msgBtn, pressed && { opacity: 0.9 }]}
+          onPress={async () => {
+            if (!user) {
+              Alert.alert('লগইন প্রয়োজন', 'মেসেজ পাঠাতে লগইন করুন');
+              return;
+            }
+            const chatId = await createChatThread(property.ownerId, property.ownerName, property.id, property.title);
+            if (chatId) {
+              router.push({ pathname: '/chat/[id]', params: { id: chatId } });
+            } else {
+              Alert.alert('ত্রুটি', 'চ্যাট শুরু করা যায়নি');
+            }
+          }}
+        >
+          <Ionicons name="chatbubble" size={20} color="#FFFFFF" />
+          <Text style={styles.msgBtnText}>মেসেজ</Text>
         </Pressable>
         <Pressable style={({ pressed }) => [styles.whatsappBtn, pressed && { opacity: 0.9 }]} onPress={handleWhatsApp}>
           <Ionicons name="logo-whatsapp" size={20} color="#FFFFFF" />
@@ -218,8 +282,22 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 16, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
   errorBtn: { backgroundColor: Colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
   errorBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
+  imageContainer: { height: 280, backgroundColor: '#EDF2F7' },
+  imageScroller: { height: 280 },
+  propertyImage: { width: SCREEN_WIDTH, height: 280 },
   imagePlaceholder: { height: 280, backgroundColor: '#EDF2F7', alignItems: 'center', justifyContent: 'center' },
   imagePlaceholderText: { fontSize: 16, fontFamily: 'Inter_500Medium', color: Colors.textMuted, marginTop: 8 },
+  imageDots: {
+    position: 'absolute', bottom: 12, alignSelf: 'center',
+    flexDirection: 'row', gap: 6,
+  },
+  imageDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.5)' },
+  imageDotActive: { backgroundColor: '#FFFFFF', width: 20 },
+  imageCounter: {
+    position: 'absolute', bottom: 12, right: 12,
+    backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10,
+  },
+  imageCounterText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
   topBar: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between' },
   topBarBtn: {
     width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.35)',
@@ -295,6 +373,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary, height: 50, borderRadius: 14,
   },
   callBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
+  msgBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: Colors.secondary, height: 50, borderRadius: 14,
+  },
+  msgBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
   whatsappBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     backgroundColor: '#25D366', height: 50, borderRadius: 14,

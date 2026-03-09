@@ -9,6 +9,7 @@ import {
   Platform,
   Dimensions,
   ScrollView,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,9 +32,15 @@ function PropertyCard({ item, index, onSave, isSaved }: { item: Property; index:
         style={({ pressed }) => [styles.propertyCard, pressed && { opacity: 0.95, transform: [{ scale: 0.98 }] }]}
         onPress={() => router.push({ pathname: '/property/[id]', params: { id: item.id } })}
       >
-        <View style={styles.cardImagePlaceholder}>
-          <Ionicons name="image-outline" size={40} color={Colors.textMuted} />
-          <Text style={styles.cardImageText}>{typeLabel}</Text>
+        <View style={styles.cardImageContainer}>
+          {item.images && item.images.length > 0 ? (
+            <Image source={{ uri: item.images[0] }} style={styles.cardImage} resizeMode="cover" />
+          ) : (
+            <View style={styles.cardImagePlaceholder}>
+              <Ionicons name="image-outline" size={40} color={Colors.textMuted} />
+              <Text style={styles.cardImageText}>{typeLabel}</Text>
+            </View>
+          )}
           {item.verified && (
             <View style={styles.verifiedBadge}>
               <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
@@ -209,6 +216,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface, borderRadius: 16, marginBottom: 14,
     borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+  },
+  cardImageContainer: {
+    height: 180, backgroundColor: '#EDF2F7',
+  },
+  cardImage: {
+    width: '100%', height: 180,
   },
   cardImagePlaceholder: {
     height: 180, backgroundColor: '#EDF2F7', alignItems: 'center', justifyContent: 'center',

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, FlatList, Platform } from 'react-native';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/lib/app-context';
@@ -7,7 +8,7 @@ import Colors from '@/constants/colors';
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
-  const { chatThreads } = useApp();
+  const { chatThreads, user } = useApp();
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -24,13 +25,18 @@ export default function ChatScreen() {
   };
 
   const renderChatItem = ({ item }: { item: typeof chatThreads[0] }) => (
-    <Pressable style={({ pressed }) => [styles.chatItem, pressed && { backgroundColor: Colors.inputBg }]}>
+    <Pressable
+      style={({ pressed }) => [styles.chatItem, pressed && { backgroundColor: Colors.inputBg }]}
+      onPress={() => router.push({ pathname: '/chat/[id]', params: { id: item.id } })}
+    >
       <View style={styles.avatar}>
         <Ionicons name="person" size={22} color={Colors.textMuted} />
       </View>
       <View style={styles.chatContent}>
         <View style={styles.chatTop}>
-          <Text style={styles.chatName} numberOfLines={1}>{item.participantNames[1]}</Text>
+          <Text style={styles.chatName} numberOfLines={1}>
+            {item.participantNames[item.participantIds[0] === user?.id ? 1 : 0] || 'ব্যবহারকারী'}
+          </Text>
           <Text style={styles.chatTime}>{formatTime(item.lastMessageTime)}</Text>
         </View>
         {item.propertyTitle && (

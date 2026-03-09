@@ -22,6 +22,9 @@ function RootLayoutNav() {
       <Stack.Screen name="(admin)" options={{ headerShown: false }} />
       <Stack.Screen name="property/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="search" options={{ headerShown: false }} />
+      <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
+      <Stack.Screen name="edit-property" options={{ headerShown: false }} />
+      <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
     </Stack>
   );

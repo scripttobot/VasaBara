@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, Platform, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, FlatList, Pressable, Platform, ActivityIndicator, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '@/lib/firebase';
@@ -14,6 +14,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState<'all' | 'client' | 'owner'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -35,9 +36,22 @@ export default function AdminUsers() {
     return () => unsubscribe();
   }, []);
 
-  const filteredUsers = filterRole === 'all'
-    ? users.filter(u => u.role !== 'admin')
-    : users.filter(u => u.role === filterRole);
+  const filteredUsers = useMemo(() => {
+    let result = filterRole === 'all'
+      ? users.filter(u => u.role !== 'admin')
+      : users.filter(u => u.role === filterRole);
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(u =>
+        (u.name?.toLowerCase() ?? '').includes(query) ||
+        (u.email?.toLowerCase() ?? '').includes(query) ||
+        (u.phone?.toLowerCase() ?? '').includes(query)
+      );
+    }
+
+    return result;
+  }, [users, filterRole, searchQuery]);
 
   const toggleKYC = async (userId: string, currentStatus: boolean) => {
     try {
@@ -116,6 +130,24 @@ export default function AdminUsers() {
         <Text style={styles.subtitle}>মোট {users.filter(u => u.role !== 'admin').length} জন ইউজার</Text>
       </View>
 
+      <View style={styles.searchContainer}>
+        <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="নাম, ইমেইল বা ফোন দিয়ে খুঁজুন..."
+          placeholderTextColor={Colors.textMuted}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+          </Pressable>
+        )}
+      </View>
+
       <View style={styles.filterRow}>
         {(['all', 'client', 'owner'] as const).map(role => (
           <Pressable
@@ -154,6 +186,26 @@ const styles = StyleSheet.create({
   header: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingBottom: 16 },
   title: { fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   subtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginTop: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textPrimary,
+    padding: 0,
+  },
   filterRow: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, gap: 8 },
   filterBtn: {
     paddingHorizontal: 16,

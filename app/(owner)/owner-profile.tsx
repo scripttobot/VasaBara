@@ -24,6 +24,34 @@ export default function OwnerProfileScreen() {
     ]);
   };
 
+  const handleMenuPress = (label: string) => {
+    switch (label) {
+      case 'প্রোফাইল সম্পাদনা':
+        router.push('/edit-profile');
+        break;
+      case 'KYC ভেরিফিকেশন':
+        Alert.alert('KYC ভেরিফিকেশন', user?.kycVerified
+          ? 'আপনার KYC ভেরিফাই করা হয়েছে।'
+          : 'KYC ভেরিফিকেশন প্রক্রিয়াধীন। অনুগ্রহ করে অপেক্ষা করুন।');
+        break;
+      case 'পেমেন্ট মেথড':
+        Alert.alert('পেমেন্ট', 'পেমেন্ট মেথড সেটিংস শীঘ্রই আসছে');
+        break;
+      case 'আর্নিং রিপোর্ট':
+        Alert.alert('আর্নিং রিপোর্ট', 'রিপোর্ট ফিচার শীঘ্রই আসছে');
+        break;
+      case 'নোটিফিকেশন':
+        Alert.alert('নোটিফিকেশন', 'নোটিফিকেশন সেটিংস শীঘ্রই আসছে');
+        break;
+      case 'বিজনেস আওয়ারস':
+        Alert.alert('বিজনেস আওয়ারস', 'বিজনেস আওয়ারস সেটিংস শীঘ্রই আসছে');
+        break;
+      case 'সাহায্য':
+        Alert.alert('সাহায্য', 'BashVara - বাংলাদেশের ভাড়া বাড়ি খোঁজার অ্যাপ।\n\nসমস্যা হলে support@bashvara.com এ যোগাযোগ করুন।');
+        break;
+    }
+  };
+
   const menuItems = [
     { icon: 'person-outline' as const, label: 'প্রোফাইল সম্পাদনা', color: Colors.secondary },
     { icon: 'shield-checkmark-outline' as const, label: 'KYC ভেরিফিকেশন', color: Colors.success },
@@ -59,7 +87,11 @@ export default function OwnerProfileScreen() {
 
         <View style={styles.menuSection}>
           {menuItems.map((item, index) => (
-            <Pressable key={index} style={({ pressed }) => [styles.menuItem, pressed && { backgroundColor: Colors.inputBg }]}>
+            <Pressable
+              key={index}
+              style={({ pressed }) => [styles.menuItem, pressed && { backgroundColor: Colors.inputBg }]}
+              onPress={() => handleMenuPress(item.label)}
+            >
               <View style={[styles.menuIcon, { backgroundColor: item.color + '15' }]}>
                 <Ionicons name={item.icon} size={20} color={item.color} />
               </View>

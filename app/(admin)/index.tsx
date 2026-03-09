@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useApp } from '@/lib/app-context';
 import Colors from '@/constants/colors';
 
@@ -84,19 +85,19 @@ export default function AdminDashboard() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>দ্রুত কাজ</Text>
         <View style={styles.actionsGrid}>
-          <Pressable style={styles.actionCard}>
+          <Pressable style={styles.actionCard} onPress={() => router.navigate('/(admin)/properties')}>
             <Ionicons name="checkmark-done-circle" size={28} color={Colors.success} />
             <Text style={styles.actionLabel}>প্রপার্টি অ্যাপ্রুভ</Text>
           </Pressable>
-          <Pressable style={styles.actionCard}>
+          <Pressable style={styles.actionCard} onPress={() => router.navigate('/(admin)/users')}>
             <Ionicons name="people-circle" size={28} color={ADMIN_ACCENT} />
             <Text style={styles.actionLabel}>ইউজার ম্যানেজ</Text>
           </Pressable>
-          <Pressable style={styles.actionCard}>
+          <Pressable style={styles.actionCard} onPress={() => Alert.alert('রিপোর্টেড', 'কোনো রিপোর্ট নেই')}>
             <Ionicons name="flag" size={28} color={Colors.danger} />
             <Text style={styles.actionLabel}>রিপোর্টেড</Text>
           </Pressable>
-          <Pressable style={styles.actionCard}>
+          <Pressable style={styles.actionCard} onPress={() => Alert.alert('অ্যানালিটিক্স', `মোট প্রপার্টি: ${totalProperties}\nভেরিফাইড: ${verifiedProperties}\nপেন্ডিং: ${pendingProperties}\nফিচার্ড: ${featuredProperties}\nএভেইলেবল: ${availableProperties}\nমোট ভিউ: ${totalViews}`)}>
             <Ionicons name="analytics" size={28} color={Colors.secondary} />
             <Text style={styles.actionLabel}>অ্যানালিটিক্স</Text>
           </Pressable>

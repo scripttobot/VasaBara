@@ -9,7 +9,7 @@ import * as Haptics from 'expo-haptics';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { user, logout } = useApp();
+  const { user, savedProperties, logout } = useApp();
 
   const handleLogout = () => {
     Alert.alert('লগআউট', 'আপনি কি লগআউট করতে চান?', [
@@ -24,6 +24,35 @@ export default function ProfileScreen() {
         },
       },
     ]);
+  };
+
+  const handleMenuPress = (label: string) => {
+    switch (label) {
+      case 'প্রোফাইল সম্পাদনা':
+        router.push('/edit-profile');
+        break;
+      case 'নোটিফিকেশন সেটিংস':
+        Alert.alert('নোটিফিকেশন', 'নোটিফিকেশন সেটিংস শীঘ্রই আসছে');
+        break;
+      case 'গোপনীয়তা':
+        Alert.alert('গোপনীয়তা', 'আপনার তথ্য সম্পূর্ণ সুরক্ষিত। আমরা Firebase Authentication ও Firestore ব্যবহার করি।');
+        break;
+      case 'ভাষা পরিবর্তন':
+        Alert.alert('ভাষা', 'বর্তমান ভাষা: বাংলা');
+        break;
+      case 'ডার্ক মোড':
+        Alert.alert('ডার্ক মোড', 'এই ফিচার শীঘ্রই আসছে');
+        break;
+      case 'সাহায্য কেন্দ্র':
+        Alert.alert('সাহায্য', 'BashVara - বাংলাদেশের ভাড়া বাড়ি খোঁজার অ্যাপ।\n\nসমস্যা হলে support@bashvara.com এ যোগাযোগ করুন।');
+        break;
+      case 'শর্তাবলী':
+        Alert.alert('শর্তাবলী', 'BashVara ব্যবহার করে আপনি আমাদের শর্তাবলী মেনে নিচ্ছেন। ভাড়াটিয়া ও বাড়িওয়ালা উভয়ই তাদের দেওয়া তথ্যের জন্য দায়ী।');
+        break;
+      case 'অ্যাপ সম্পর্কে':
+        Alert.alert('অ্যাপ সম্পর্কে', 'BashVara (বাসভাড়া)\nসংস্করণ: 1.0.0\n\nবাংলাদেশের ভাড়া বাসা খোঁজার সেরা প্ল্যাটফর্ম');
+        break;
+    }
   };
 
   const menuItems = [
@@ -57,24 +86,18 @@ export default function ProfileScreen() {
 
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statNumber}>{savedProperties.length}</Text>
             <Text style={styles.statLabel}>সংরক্ষিত</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>0</Text>
-            <Text style={styles.statLabel}>ভিজিট</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>0</Text>
-            <Text style={styles.statLabel}>রিভিউ</Text>
           </View>
         </View>
 
         <View style={styles.menuSection}>
           {menuItems.map((item, index) => (
-            <Pressable key={index} style={({ pressed }) => [styles.menuItem, pressed && { backgroundColor: Colors.inputBg }]}>
+            <Pressable
+              key={index}
+              style={({ pressed }) => [styles.menuItem, pressed && { backgroundColor: Colors.inputBg }]}
+              onPress={() => handleMenuPress(item.label)}
+            >
               <View style={[styles.menuIcon, { backgroundColor: item.color + '15' }]}>
                 <Ionicons name={item.icon} size={20} color={item.color} />
               </View>
@@ -113,11 +136,11 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row', backgroundColor: '#FFFFFF', marginHorizontal: 24, marginTop: 12,
     padding: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.border,
+    justifyContent: 'center',
   },
-  statItem: { flex: 1, alignItems: 'center', gap: 2 },
+  statItem: { alignItems: 'center', gap: 2 },
   statNumber: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   statLabel: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  statDivider: { width: 1, backgroundColor: Colors.border },
   menuSection: {
     backgroundColor: '#FFFFFF', marginHorizontal: 24, marginTop: 16,
     borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',

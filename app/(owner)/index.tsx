@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Alert } from 'react-native';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/lib/app-context';
@@ -7,23 +8,45 @@ import Colors from '@/constants/colors';
 
 export default function OwnerDashboard() {
   const insets = useSafeAreaInsets();
-  const { user, properties } = useApp();
+  const { user, properties, chatThreads } = useApp();
   const ownerProperties = properties.filter(p => p.ownerId === user?.id);
   const totalViews = ownerProperties.reduce((sum, p) => sum + p.views, 0);
+  const ownerChats = chatThreads.length;
 
   const stats = [
     { icon: 'business-outline' as const, label: 'মোট প্রপার্টি', value: ownerProperties.length.toString(), color: Colors.primary, bg: Colors.primaryLight },
     { icon: 'eye-outline' as const, label: 'মোট ভিউ', value: totalViews.toString(), color: Colors.secondary, bg: Colors.secondaryLight },
-    { icon: 'chatbubbles-outline' as const, label: 'ইনকোয়ারি', value: '0', color: '#8B5CF6', bg: '#F3E8FF' },
-    { icon: 'calendar-outline' as const, label: 'বুকিং', value: '0', color: Colors.accent, bg: Colors.accentLight },
+    { icon: 'chatbubbles-outline' as const, label: 'মেসেজ', value: ownerChats.toString(), color: '#8B5CF6', bg: '#F3E8FF' },
+    { icon: 'checkmark-circle-outline' as const, label: 'সক্রিয়', value: ownerProperties.filter(p => p.available).length.toString(), color: Colors.success, bg: Colors.successLight },
   ];
+
+  const handleQuickAction = (label: string) => {
+    switch (label) {
+      case 'প্রপার্টি যোগ':
+        router.push('/(owner)/add-property');
+        break;
+      case 'আমার প্রপার্টি':
+        router.push('/(owner)/my-properties');
+        break;
+      case 'রিপোর্ট':
+        Alert.alert('রিপোর্ট', `মোট প্রপার্টি: ${ownerProperties.length}\nসক্রিয়: ${ownerProperties.filter(p => p.available).length}\nমোট ভিউ: ${totalViews}`);
+        break;
+      case 'সেটিংস':
+        router.push('/(owner)/owner-profile');
+        break;
+    }
+  };
 
   const quickActions = [
     { icon: 'add-circle-outline' as const, label: 'প্রপার্টি যোগ', color: Colors.primary },
-    { icon: 'document-text-outline' as const, label: 'ইনভয়েস', color: Colors.secondary },
+    { icon: 'business-outline' as const, label: 'আমার প্রপার্টি', color: Colors.secondary },
     { icon: 'bar-chart-outline' as const, label: 'রিপোর্ট', color: '#8B5CF6' },
     { icon: 'settings-outline' as const, label: 'সেটিংস', color: Colors.textSecondary },
   ];
+
+  const recentProperties = ownerProperties
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 3);
 
   return (
     <View style={styles.container}>
@@ -33,7 +56,7 @@ export default function OwnerDashboard() {
             <Text style={styles.greeting}>বাড়িওয়ালা ড্যাশবোর্ড</Text>
             <Text style={styles.headerTitle}>{user?.name || 'স্বাগতম'}</Text>
           </View>
-          <Pressable style={styles.notifBtn}>
+          <Pressable style={styles.notifBtn} onPress={() => Alert.alert('নোটিফিকেশন', 'কোনো নতুন নোটিফিকেশন নেই')}>
             <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
           </Pressable>
         </View>
@@ -54,7 +77,7 @@ export default function OwnerDashboard() {
           <Text style={styles.sectionTitle}>দ্রুত কার্যক্রম</Text>
           <View style={styles.quickGrid}>
             {quickActions.map((action, i) => (
-              <Pressable key={i} style={({ pressed }) => [styles.quickCard, pressed && { opacity: 0.8 }]}>
+              <Pressable key={i} style={({ pressed }) => [styles.quickCard, pressed && { opacity: 0.8 }]} onPress={() => handleQuickAction(action.label)}>
                 <Ionicons name={action.icon} size={26} color={action.color} />
                 <Text style={styles.quickLabel}>{action.label}</Text>
               </Pressable>
@@ -64,13 +87,32 @@ export default function OwnerDashboard() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>সাম্প্রতিক কার্যক্রম</Text>
+            <Text style={styles.sectionTitle}>সাম্প্রতিক প্রপার্টি</Text>
           </View>
-          <View style={styles.activityEmpty}>
-            <Ionicons name="time-outline" size={36} color={Colors.textMuted} />
-            <Text style={styles.activityEmptyText}>এখনো কোনো কার্যক্রম নেই</Text>
-            <Text style={styles.activityEmptySubtext}>প্রপার্টি যোগ করুন শুরু করতে</Text>
-          </View>
+          {recentProperties.length > 0 ? (
+            <View style={styles.recentList}>
+              {recentProperties.map(p => (
+                <Pressable
+                  key={p.id}
+                  style={({ pressed }) => [styles.recentItem, pressed && { backgroundColor: Colors.inputBg }]}
+                  onPress={() => router.push({ pathname: '/property/[id]', params: { id: p.id } })}
+                >
+                  <View style={[styles.recentDot, { backgroundColor: p.available ? Colors.success : Colors.danger }]} />
+                  <View style={styles.recentInfo}>
+                    <Text style={styles.recentTitle} numberOfLines={1}>{p.title}</Text>
+                    <Text style={styles.recentDate}>{new Date(p.createdAt).toLocaleDateString('bn-BD')}</Text>
+                  </View>
+                  <Text style={styles.recentRent}>{'\u09F3'}{p.rent.toLocaleString()}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.activityEmpty}>
+              <Ionicons name="time-outline" size={36} color={Colors.textMuted} />
+              <Text style={styles.activityEmptyText}>এখনো কোনো প্রপার্টি নেই</Text>
+              <Text style={styles.activityEmptySubtext}>প্রপার্টি যোগ করুন শুরু করতে</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -103,6 +145,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: Colors.border,
   },
   quickLabel: { fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.textSecondary, textAlign: 'center' },
+  recentList: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
+  recentItem: {
+    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: Colors.borderLight, gap: 12,
+  },
+  recentDot: { width: 10, height: 10, borderRadius: 5 },
+  recentInfo: { flex: 1, gap: 2 },
+  recentTitle: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
+  recentDate: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  recentRent: { fontSize: 14, fontFamily: 'Inter_700Bold', color: Colors.secondary },
   activityEmpty: { alignItems: 'center', paddingVertical: 30, gap: 6, backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: Colors.border },
   activityEmptyText: { fontSize: 15, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
   activityEmptySubtext: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },

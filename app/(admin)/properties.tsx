@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, Platform, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useApp } from '@/lib/app-context';
 import { db } from '@/lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Property } from '@/constants/types';
 import Colors from '@/constants/colors';
 
@@ -46,6 +47,28 @@ export default function AdminProperties() {
     } catch (e) {
       console.error('Error toggling available:', e);
     }
+  };
+
+  const handleDelete = (id: string, title: string) => {
+    Alert.alert(
+      'প্রপার্টি ডিলিট',
+      `আপনি কি "${title}" ডিলিট করতে চান?`,
+      [
+        { text: 'বাতিল', style: 'cancel' },
+        {
+          text: 'ডিলিট',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, 'properties', id));
+              Alert.alert('সফল', 'প্রপার্টি সফলভাবে ডিলিট করা হয়েছে।');
+            } catch (e) {
+              Alert.alert('ত্রুটি', 'প্রপার্টি ডিলিট করতে সমস্যা হয়েছে।');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const getTypeLabel = (type: string) => {
@@ -134,6 +157,24 @@ export default function AdminProperties() {
             size={16}
             color={item.available ? Colors.danger : Colors.success}
           />
+        </Pressable>
+      </View>
+
+      <View style={styles.actionRow}>
+        <Pressable
+          style={[styles.actionBtn, { backgroundColor: Colors.primaryLight }]}
+          onPress={() => router.push(`/property/${item.id}`)}
+        >
+          <Ionicons name="open-outline" size={16} color={Colors.primary} />
+          <Text style={[styles.actionText, { color: Colors.primary }]}>বিস্তারিত</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.actionBtn, { backgroundColor: Colors.dangerLight }]}
+          onPress={() => handleDelete(item.id, item.title)}
+        >
+          <Ionicons name="trash-outline" size={16} color={Colors.danger} />
+          <Text style={[styles.actionText, { color: Colors.danger }]}>ডিলিট</Text>
         </Pressable>
       </View>
     </View>

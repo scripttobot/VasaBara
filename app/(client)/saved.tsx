@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, FlatList, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, FlatList, Platform, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,7 +18,11 @@ export default function SavedScreen() {
       onPress={() => router.push({ pathname: '/property/[id]', params: { id: item.id } })}
     >
       <View style={styles.cardImage}>
-        <Ionicons name="image-outline" size={28} color={Colors.textMuted} />
+        {item.images && item.images.length > 0 ? (
+          <Image source={{ uri: item.images[0] }} style={styles.cardImageImg} resizeMode="cover" />
+        ) : (
+          <Ionicons name="image-outline" size={28} color={Colors.textMuted} />
+        )}
       </View>
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
@@ -75,7 +79,10 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: 100, height: 100, backgroundColor: '#EDF2F7',
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+  },
+  cardImageImg: {
+    width: 100, height: 100,
   },
   cardContent: { flex: 1, padding: 12, justifyContent: 'center', gap: 4 },
   cardTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },

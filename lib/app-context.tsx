@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, Property, ChatThread, SavedProperty, SearchFilters, UserRole } from '@/constants/types';
-import { SAMPLE_PROPERTIES, SAMPLE_CHATS } from '@/constants/mock-data';
+import { User, Property, ChatThread, ChatMessage, SavedProperty, SearchFilters, UserRole } from '@/constants/types';
 import { Platform } from 'react-native';
 import { auth, db, googleProvider } from '@/lib/firebase';
 import {
@@ -24,7 +23,6 @@ import {
   where,
   onSnapshot,
   orderBy,
-  writeBatch,
 } from 'firebase/firestore';
 
 interface AppContextValue {
@@ -44,6 +42,8 @@ interface AppContextValue {
   toggleSaveProperty: (propertyId: string) => void;
   isPropertySaved: (propertyId: string) => boolean;
   addProperty: (property: Omit<Property, 'id' | 'createdAt' | 'views' | 'verified' | 'featured'>) => void;
+  updateUser: (updates: Partial<User>) => Promise<boolean>;
+  updateProperty: (id: string, updates: Partial<Property>) => Promise<boolean>;
   updateSearchFilters: (filters: Partial<SearchFilters>) => void;
   clearSearchFilters: () => void;
   getFilteredProperties: () => Property[];
@@ -51,6 +51,9 @@ interface AppContextValue {
   getOwnerProperties: () => Property[];
   deleteProperty: (id: string) => void;
   togglePropertyAvailability: (id: string) => void;
+  createChatThread: (recipientId: string, recipientName: string, propertyId: string, propertyTitle: string) => Promise<string | null>;
+  sendMessage: (chatId: string, text: string) => Promise<boolean>;
+  getChatMessages: (chatId: string) => ChatMessage[];
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -77,7 +80,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [chatThreads, setChatThreads] = useState<ChatThread[]>([]);
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
   const [authLoading, setAuthLoading] = useState(true);
-  const [dataSeeded, setDataSeeded] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
@@ -158,23 +160,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         });
         props.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setProperties(props);
-
-        if (!dataSeeded && props.length === 0) {
-          setDataSeeded(true);
-          seedInitialData();
-        } else if (props.length > 0) {
-          setDataSeeded(true);
-        }
       },
       (error) => {
         console.error('Error listening to properties:', error);
-        setProperties(SAMPLE_PROPERTIES);
-        setDataSeeded(true);
+        setProperties([]);
       }
     );
 
     return () => unsubscribe();
-  }, [dataSeeded]);
+  }, []);
 
   useEffect(() => {
     if (!user || user.role === 'admin') return;
@@ -210,26 +204,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       (error) => {
         console.error('Error listening to chats:', error);
-        setChatThreads(SAMPLE_CHATS);
+        setChatThreads([]);
       }
     );
 
     return () => unsubscribe();
   }, [user]);
-
-  const seedInitialData = async () => {
-    try {
-      const batch = writeBatch(db);
-      SAMPLE_PROPERTIES.forEach((prop) => {
-        const docRef = doc(db, 'properties', prop.id);
-        batch.set(docRef, prop);
-      });
-      await batch.commit();
-    } catch (e) {
-      console.error('Error seeding data:', e);
-      setProperties(SAMPLE_PROPERTIES);
-    }
-  };
 
   const login = async (email: string, password: string, overrideRole?: UserRole): Promise<boolean> => {
     const effectiveRole = overrideRole || userRole || 'client';
@@ -505,6 +485,91 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUser = async (updates: Partial<User>): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const cleanUpdates = removeUndefined(updates as any);
+      delete cleanUpdates.id;
+      await updateDoc(doc(db, 'users', user.id), cleanUpdates);
+      setUser(prev => prev ? { ...prev, ...updates } : null);
+      return true;
+    } catch (e) {
+      console.error('Error updating user:', e);
+      return false;
+    }
+  };
+
+  const updateProperty = async (id: string, updates: Partial<Property>): Promise<boolean> => {
+    try {
+      const cleanUpdates = removeUndefined(updates as any);
+      delete cleanUpdates.id;
+      await updateDoc(doc(db, 'properties', id), cleanUpdates);
+      return true;
+    } catch (e) {
+      console.error('Error updating property:', e);
+      return false;
+    }
+  };
+
+  const createChatThread = async (
+    recipientId: string,
+    recipientName: string,
+    propertyId: string,
+    propertyTitle: string
+  ): Promise<string | null> => {
+    if (!user) return null;
+    try {
+      const existing = chatThreads.find(
+        t => t.participantIds.includes(recipientId) && t.propertyId === propertyId
+      );
+      if (existing) return existing.id;
+
+      const thread = {
+        participantIds: [user.id, recipientId],
+        participantNames: [user.name, recipientName],
+        propertyId,
+        propertyTitle,
+        lastMessage: '',
+        lastMessageTime: new Date().toISOString(),
+        unreadCount: 0,
+      };
+      const docRef = await addDoc(collection(db, 'chats'), removeUndefined(thread));
+      return docRef.id;
+    } catch (e) {
+      console.error('Error creating chat:', e);
+      return null;
+    }
+  };
+
+  const [chatMessages, setChatMessages] = useState<Record<string, ChatMessage[]>>({});
+
+  const sendMessage = async (chatId: string, text: string): Promise<boolean> => {
+    if (!user || !text.trim()) return false;
+    try {
+      const msg = {
+        senderId: user.id,
+        receiverId: '',
+        text: text.trim(),
+        timestamp: new Date().toISOString(),
+        read: false,
+      };
+      await addDoc(collection(db, 'chats', chatId, 'messages'), removeUndefined(msg));
+      await updateDoc(doc(db, 'chats', chatId), {
+        lastMessage: text.trim(),
+        lastMessageTime: new Date().toISOString(),
+      });
+      return true;
+    } catch (e) {
+      console.error('Error sending message:', e);
+      return false;
+    }
+  };
+
+  const getChatMessages = useCallback(
+    (chatId: string): ChatMessage[] => chatMessages[chatId] || [],
+    [chatMessages]
+  );
+
   const value = useMemo(
     () => ({
       user,
@@ -523,6 +588,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleSaveProperty,
       isPropertySaved,
       addProperty,
+      updateUser,
+      updateProperty,
       updateSearchFilters,
       clearSearchFilters,
       getFilteredProperties,
@@ -530,8 +597,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       getOwnerProperties,
       deleteProperty,
       togglePropertyAvailability,
+      createChatThread,
+      sendMessage,
+      getChatMessages,
     }),
-    [user, userRole, properties, savedProperties, chatThreads, searchFilters, authLoading]
+    [user, userRole, properties, savedProperties, chatThreads, searchFilters, authLoading, chatMessages]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

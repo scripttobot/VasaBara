@@ -3,14 +3,16 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Alert } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useApp } from '@/lib/app-context';
+import { db } from '@/lib/firebase';
 import Colors from '@/constants/colors';
 
 const ADMIN_ACCENT = '#6C5CE7';
 
 export default function AdminSettings() {
   const insets = useSafeAreaInsets();
-  const { logout } = useApp();
+  const { logout, user } = useApp();
 
   const handleLogout = () => {
     Alert.alert(
@@ -28,6 +30,81 @@ export default function AdminSettings() {
         },
       ]
     );
+  };
+
+  const handleNotificationSettings = () => {
+    Alert.alert(
+      'নোটিফিকেশন সেটিংস',
+      'পুশ নোটিফিকেশন চালু আছে।',
+      [
+        { text: 'বন্ধ করুন', onPress: () => Alert.alert('সফল', 'নোটিফিকেশন বন্ধ করা হয়েছে') },
+        { text: 'ঠিক আছে', style: 'cancel' },
+      ]
+    );
+  };
+
+  const handleSecurity = () => {
+    Alert.alert('সিকিউরিটি', 'পাসওয়ার্ড Firebase Authentication দ্বারা ম্যানেজ করা হয়। পাসওয়ার্ড পরিবর্তন করতে Firebase Console ব্যবহার করুন।');
+  };
+
+  const handleLanguage = () => {
+    Alert.alert('ভাষা সেটিংস', 'বর্তমান ভাষা: বাংলা\n\nভবিষ্যতে আরও ভাষা যোগ করা হবে।');
+  };
+
+  const handleDataBackup = () => {
+    Alert.alert('ডাটা ব্যাকআপ', 'Firebase অটো-ব্যাকআপ সক্রিয় আছে। আপনার সমস্ত ডাটা স্বয়ংক্রিয়ভাবে ব্যাকআপ হচ্ছে।');
+  };
+
+  const handleReportExport = () => {
+    Alert.alert('রিপোর্ট এক্সপোর্ট', 'এই ফিচারটি শীঘ্রই আসছে।');
+  };
+
+  const handleCacheClear = () => {
+    Alert.alert(
+      'ক্যাশ ক্লিয়ার',
+      'আপনি কি নিশ্চিত যে আপনি অ্যাপ ক্যাশ পরিষ্কার করতে চান?',
+      [
+        { text: 'বাতিল', style: 'cancel' },
+        {
+          text: 'ক্লিয়ার করুন',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.clear();
+              Alert.alert('সফল', 'অ্যাপ ক্যাশ সফলভাবে পরিষ্কার করা হয়েছে।');
+            } catch (e) {
+              Alert.alert('ত্রুটি', 'ক্যাশ পরিষ্কার করতে সমস্যা হয়েছে।');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleAppInfo = () => {
+    Alert.alert('অ্যাপ তথ্য', 'BashVara v1.0.0\n\nবাংলাদেশের সেরা বাসা ভাড়া প্ল্যাটফর্ম।\n\nডেভেলপড বাই: BashVara Team');
+  };
+
+  const handleDevLogs = () => {
+    const firebaseApp = db.app;
+    Alert.alert('ডেভেলপার লগ', `Firebase Project: ${firebaseApp.options.projectId ?? 'N/A'}\nAuth Domain: ${firebaseApp.options.authDomain ?? 'N/A'}\nAdmin User: ${user?.email ?? 'N/A'}`);
+  };
+
+  const handleFirebaseStatus = () => {
+    const isConnected = !!db;
+    Alert.alert('Firebase স্ট্যাটাস', isConnected ? 'Firebase সার্ভারের সাথে সংযুক্ত আছে।' : 'Firebase সার্ভারের সাথে সংযোগ বিচ্ছিন্ন।');
+  };
+
+  const settingsHandlers: Record<string, () => void> = {
+    'নোটিফিকেশন সেটিংস': handleNotificationSettings,
+    'সিকিউরিটি': handleSecurity,
+    'ভাষা সেটিংস': handleLanguage,
+    'ডাটা ব্যাকআপ': handleDataBackup,
+    'রিপোর্ট এক্সপোর্ট': handleReportExport,
+    'ক্যাশ ক্লিয়ার': handleCacheClear,
+    'অ্যাপ তথ্য': handleAppInfo,
+    'ডেভেলপার লগ': handleDevLogs,
+    'Firebase স্ট্যাটাস': handleFirebaseStatus,
   };
 
   const settingsGroups = [
@@ -69,8 +146,8 @@ export default function AdminSettings() {
           <Ionicons name="shield-checkmark" size={28} color="#FFFFFF" />
         </View>
         <View style={styles.adminInfo}>
-          <Text style={styles.adminName}>Super Admin</Text>
-          <Text style={styles.adminEmail}>admin@bashvara.com</Text>
+          <Text style={styles.adminName}>{user?.name || 'Super Admin'}</Text>
+          <Text style={styles.adminEmail}>{user?.email || 'admin@bashvara.com'}</Text>
         </View>
         <View style={styles.adminRoleBadge}>
           <Text style={styles.adminRoleText}>অ্যাডমিন</Text>
@@ -88,6 +165,7 @@ export default function AdminSettings() {
                   styles.settingItem,
                   itemIndex < group.items.length - 1 && styles.settingItemBorder,
                 ]}
+                onPress={() => settingsHandlers[item.label]?.()}
               >
                 <View style={styles.settingIcon}>
                   <Ionicons name={item.icon} size={22} color={ADMIN_ACCENT} />

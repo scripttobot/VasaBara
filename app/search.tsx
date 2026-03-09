@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, Pressable, TextInput, FlatList, Platform, ScrollView,
+  View, Text, StyleSheet, Pressable, TextInput, FlatList, Platform, ScrollView, Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -50,7 +50,11 @@ export default function SearchScreen() {
       onPress={() => router.push({ pathname: '/property/[id]', params: { id: item.id } })}
     >
       <View style={styles.resultImage}>
-        <Ionicons name="image-outline" size={24} color={Colors.textMuted} />
+        {item.images && item.images.length > 0 ? (
+          <Image source={{ uri: item.images[0] }} style={styles.resultImageImg} resizeMode="cover" />
+        ) : (
+          <Ionicons name="image-outline" size={24} color={Colors.textMuted} />
+        )}
       </View>
       <View style={styles.resultContent}>
         <Text style={styles.resultTitle} numberOfLines={1}>{item.title}</Text>
@@ -250,7 +254,10 @@ const styles = StyleSheet.create({
     marginBottom: 10, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
   },
   resultImage: {
-    width: 90, backgroundColor: '#EDF2F7', alignItems: 'center', justifyContent: 'center',
+    width: 90, backgroundColor: '#EDF2F7', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+  },
+  resultImageImg: {
+    width: 90, height: '100%',
   },
   resultContent: { flex: 1, padding: 12, gap: 4 },
   resultTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
