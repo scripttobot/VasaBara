@@ -24,7 +24,7 @@ export default function OwnerProfileScreen() {
         text: 'হ্যাঁ', style: 'destructive', onPress: async () => {
           if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           await logout();
-          router.replace('/');
+          router.replace('/(auth)/login');
         },
       },
     ]);

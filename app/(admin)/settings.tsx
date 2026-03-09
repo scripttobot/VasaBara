@@ -25,7 +25,7 @@ export default function AdminSettings() {
           style: 'destructive',
           onPress: async () => {
             await logout();
-            router.replace('/');
+            router.replace('/(auth)/login');
           },
         },
       ]
