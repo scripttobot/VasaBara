@@ -4,12 +4,13 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { useApp } from '@/lib/app-context';
+import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 import Colors from '@/constants/colors';
 import { DIVISIONS } from '@/constants/locations';
 import * as Haptics from 'expo-haptics';
 
 export default function RegisterClientScreen() {
-  const { register, googleLogin, isLoggedIn, userRole } = useApp();
+  const { register, isLoggedIn, userRole } = useApp();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -57,17 +58,6 @@ export default function RegisterClientScreen() {
     }
   };
 
-  const handleGoogleRegister = async () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setLoading(true);
-    const success = await googleLogin('client');
-    setLoading(false);
-    if (success) {
-      setDidAttempt(true);
-    } else {
-      Alert.alert('ত্রুটি', 'গুগল সাইন আপ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
-    }
-  };
 
   return (
     <KeyboardAwareScrollViewCompat
@@ -178,20 +168,18 @@ export default function RegisterClientScreen() {
           <Text style={styles.registerBtnText}>{loading ? 'রেজিস্টার হচ্ছে...' : 'রেজিস্টার করুন'}</Text>
         </Pressable>
 
-        {Platform.OS === 'web' && (
-          <>
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>অথবা</Text>
-              <View style={styles.dividerLine} />
-            </View>
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>অথবা</Text>
+          <View style={styles.dividerLine} />
+        </View>
 
-            <Pressable style={styles.googleBtn} onPress={handleGoogleRegister} disabled={loading}>
-              <Ionicons name="logo-google" size={20} color="#DB4437" />
-              <Text style={styles.googleBtnText}>গুগল দিয়ে সাইন আপ</Text>
-            </Pressable>
-          </>
-        )}
+        <GoogleSignInButton
+          label="গুগল দিয়ে সাইন আপ"
+          disabled={loading}
+          onSuccess={() => setDidAttempt(true)}
+          onError={() => Alert.alert('ত্রুটি', 'গুগল সাইন আপ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।')}
+        />
       </View>
     </KeyboardAwareScrollViewCompat>
   );
@@ -230,16 +218,4 @@ const styles = StyleSheet.create({
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
   dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
   dividerText: { marginHorizontal: 16, fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
-  googleBtn: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    backgroundColor: Colors.inputBg,
-    borderRadius: 14,
-    height: 52,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-  },
-  googleBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
 });
