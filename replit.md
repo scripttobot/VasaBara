@@ -1,150 +1,109 @@
-# BashVara - বাসভাড়া To-Let App
+# BashVara (বাসভাড়া) - Rental Property App
 
 ## Overview
-A hybrid mobile app (React Native / Expo) for finding rental properties in Bangladesh. Connects tenants (ভাড়াটিয়া) with property owners (বাড়িওয়ালা) directly.
 
-## Tech Stack
-- **Frontend**: React Native with Expo Router (file-based routing)
-- **Backend**: Express.js with TypeScript (landing page + API)
-- **Database**: Firebase Firestore (real-time NoSQL)
-- **Auth**: Firebase Authentication (Email/Password + Google Sign-In)
-- **Storage**: Firebase Storage (property images)
-- **State Management**: React Context + Firebase real-time listeners
-- **Theme**: ThemeProvider (dark mode) + LanguageProvider (Bengali/English i18n)
-- **UI**: Custom components with Inter font family
-- **Icons**: @expo/vector-icons (Ionicons)
+BashVara is a mobile application for Bangladesh's rental property market built with React Native and Expo SDK 54. The app connects tenants (ভাড়াটিয়া) with property owners (বাড়িওয়ালা) through a role-based interface with three distinct user types: clients (tenants), owners (landlords), and admins.
 
-## Firebase Configuration
-- **Project**: vasabara-9fc81
-- **Services Used**: Auth, Firestore, Storage
-- **Collections**: `users`, `properties`, `chats`, `notifications`
-- **Subcollections**: `users/{uid}/savedProperties`, `chats/{chatId}/messages`
-- **Auth Methods**: Email/Password, Google Sign-In (web + native via expo-auth-session)
-- **Environment Variables**: All prefixed with `EXPO_PUBLIC_FIREBASE_*`, plus `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`
-- **Important**: Firestore rules must allow read/write; Replit domain must be added to Firebase Auth authorized domains
+Key features include property listings with advanced search/filter, real-time Firebase-powered chat, KYC verification for owners, saved properties bookmarking, dark mode, bilingual support (Bengali/English), and Google Sign-In.
 
-## Three User Roles
-1. **Client (ভাড়াটিয়া)**: Search, browse, save properties, chat with owners
-2. **Owner (বাড়িওয়ালা)**: List, edit, manage rental properties, view dashboard stats
-3. **Admin (গোপন)**: Secret admin panel accessible via special credentials
-   - Username: `admin`, Password: `*#*#noraxlab#*#*`
-   - In-app admin panel with Dashboard, User Management, Property Management, Settings
+## User Preferences
 
-## Project Architecture
+Preferred communication style: Simple, everyday language.
 
-### File Structure
+## System Architecture
+
+### Frontend Architecture
+
+- **Framework**: React Native with Expo SDK 54, targeting iOS, Android, and Web
+- **Routing**: Expo Router (file-based routing) with typed routes enabled
+  - `app/index.tsx` — Welcome/landing screen with role selection
+  - `app/(auth)/` — Authentication screens (login, register-client, register-owner)
+  - `app/(client)/` — Tenant tab interface (home, chat, saved, profile)
+  - `app/(owner)/` — Landlord tab interface (dashboard, add-property, my-properties, owner-profile)
+  - `app/(admin)/` — Admin panel (dashboard, users, properties, settings)
+  - `app/chat/[id].tsx` — Real-time individual chat screen
+  - `app/property/[id].tsx` — Property detail screen
+  - Standalone screens: search, edit-profile, edit-property, notifications, notification-settings, privacy, terms, about, help-center
+- **Navigation**: Tab-based navigation per role group; uses native tabs on iOS (via `expo-router/unstable-native-tabs`) with SF Symbols, falls back to classic Expo Router Tabs on Android/Web
+- **UI**: Custom components with Inter font family, Ionicons for icons, linear gradients, blur effects, and animated entries via Reanimated
+- **State Management**: React Context (`AppProvider`, `ThemeProvider`, `LanguageProvider`) combined with Firebase real-time listeners (`onSnapshot`). TanStack React Query is also configured but primarily used as a supplementary data-fetching layer
+- **Platform Compatibility**: Platform-specific code branches handle iOS/Android/Web differences throughout (keyboard handling, tab bar styling, haptics guard)
+
+### State & Context Design
+
+- **AppProvider** (`lib/app-context.tsx`): Central context managing auth state, properties, saved properties, chat threads, notifications, and all Firebase CRUD operations
+- **ThemeProvider** (`lib/theme-context.tsx`): Dark/light mode toggle, persisted via AsyncStorage
+- **LanguageProvider** (`lib/language-context.tsx`): Bengali/English toggle with inline translation dictionary, persisted via AsyncStorage
+
+### Backend Architecture
+
+The app is **entirely serverless** — Firebase provides all backend functionality:
+- **Firebase Authentication**: Email/password and Google OAuth sign-in
+- **Firestore**: NoSQL document database for users, properties, chats, messages, notifications
+- **Firebase Storage**: Property images and KYC document uploads
+- Real-time listeners (`onSnapshot`) used for chat messages, user lists, and property updates
+
+Firebase config is loaded from `EXPO_PUBLIC_*` environment variables defined in `.env`.
+
+### Authentication & Authorization
+
+- Role-based access: three roles — `client`, `owner`, `admin`
+- Role is stored in the Firestore `users` collection and loaded on auth state change
+- Admin access is gated by a hardcoded credential check (`admin` / `*#*#noraxlab#*#*`) at login
+- Google Sign-In uses `expo-auth-session` with `GoogleAuthProvider.credential` passed to Firebase
+- Auth persistence uses `getReactNativePersistence(AsyncStorage)` on mobile, `getAuth` on web
+- Role-based routing enforced in `app/index.tsx` and each auth screen's `useEffect`
+
+### Data Models
+
+Defined in `constants/types.ts`:
+- **User**: id, role, name, email, phone, whatsapp, profileImage, gender, occupation, location fields, nidNumber, kycVerified, createdAt
+- **Property**: id, ownerId, title, type, images[], division/district/upazila/address, rent, deposit, serviceCharge, bedrooms, bathrooms, area, furnishing, genderPreference, amenity booleans (parking, gas, water, elevator, generator, security), negotiable, available, verified, featured, views, createdAt
+- **ChatThread**: id, participantIds[], participantNames[], propertyId, propertyTitle, lastMessage, lastMessageTime, unreadCount
+- **ChatMessage**: id, senderId, text, timestamp, edited flag
+- **AppNotification**: id, type (message/new_property/kyc_approved/kyc_declined/system), read, createdAt
+
+### Search & Filtering
+
+Client-side filtering in `app/search.tsx` and `lib/app-context.tsx` using `useMemo`. Filter criteria: text query (title/address/upazila), property type, furnishing type, gender preference, min bedrooms, max rent.
+
+### Location Data
+
+Static hierarchical data in `constants/locations.ts`: Division → District → Upazila for all Bangladesh administrative regions. Used for property filtering and user profile location selection.
+
+### Notification Preferences
+
+Stored locally via AsyncStorage (`@bashvara_notification_prefs`). Notification types: messages, new_property, kyc_approved/declined, system.
+
+## External Dependencies
+
+| Dependency | Purpose |
+|---|---|
+| **Firebase** (`firebase` v12) | Auth, Firestore database, Cloud Storage — full backend |
+| **expo-auth-session** + **expo-web-browser** | Google OAuth flow cross-platform |
+| **@react-native-async-storage/async-storage** | Local persistence for theme, language, notification prefs |
+| **@tanstack/react-query** | Data-fetching layer (configured with long stale time, no auto-refetch) |
+| **expo-image-picker** | Property image uploads and KYC document capture |
+| **expo-location** | Device location access |
+| **expo-linear-gradient** | UI gradient backgrounds |
+| **expo-blur** | Tab bar blur effect (iOS) |
+| **expo-glass-effect** | Liquid glass tab bar on supported iOS versions |
+| **expo-haptics** | Tactile feedback on native platforms |
+| **react-native-reanimated** | Animated list entries and transitions |
+| **react-native-gesture-handler** | Gesture support |
+| **react-native-keyboard-controller** | Keyboard-aware scroll on native (falls back to ScrollView on web) |
+| **@expo-google-fonts/inter** | Inter font family (400, 500, 600, 700) |
+| **@expo/vector-icons** (Ionicons) | All app icons |
+| **expo-router/unstable-native-tabs** | Native iOS tab bar with SF Symbols |
+
+### Environment Variables Required
+
 ```
-app/
-  _layout.tsx              # Root layout (Stack navigator, providers: Theme, Language, App)
-  index.tsx                # Welcome/Onboarding screen
-  search.tsx               # Advanced search with filters
-  edit-profile.tsx         # Edit user profile (shared by client/owner)
-  edit-property.tsx        # Edit property details (owners)
-  property/[id].tsx        # Property detail screen with image gallery
-  chat/[id].tsx            # Chat screen (FB Messenger-style delete/edit)
-  notifications.tsx        # Notification list screen with real-time updates
-  notification-settings.tsx # Notification toggle preferences
-  privacy.tsx              # Privacy policy screen
-  help-center.tsx          # Help center with FAQ accordions
-  terms.tsx                # Terms & conditions screen
-  about.tsx                # About app screen
-  (auth)/
-    _layout.tsx            # Auth stack layout
-    login.tsx              # Login screen (with secret admin check)
-    register-client.tsx    # Client registration (Firebase Auth)
-    register-owner.tsx     # Owner registration (Firebase Auth)
-  (client)/
-    _layout.tsx            # Client tab layout (Home, Chat, Saved, Profile)
-    index.tsx              # Client home/dashboard with notification bell badge
-    chat.tsx               # Chat inbox with navigation to chat/[id]
-    saved.tsx              # Saved properties
-    profile.tsx            # Client profile (dark mode toggle, language switch, all settings)
-  (owner)/
-    _layout.tsx            # Owner tab layout (Dashboard, Add, Properties, Profile)
-    index.tsx              # Owner dashboard with notification bell badge
-    add-property.tsx       # Multi-step add property form
-    my-properties.tsx      # Owner's property list with edit/delete/toggle
-    owner-profile.tsx      # Owner profile & settings
-  (admin)/
-    _layout.tsx            # Admin tab layout (Dashboard, Users, Properties, Settings)
-    index.tsx              # Admin dashboard with quick actions
-    users.tsx              # User management with KYC verify + notifications
-    properties.tsx         # Property moderation (approve/reject/feature/delete)
-    settings.tsx           # Admin settings
-
-constants/
-  colors.ts                # Theme colors
-  locations.ts             # Bangladesh divisions/districts/upazilas data
-  types.ts                 # TypeScript interfaces (User, Property, ChatMessage, AppNotification)
-
-lib/
-  app-context.tsx           # Global app state (Auth + Firestore listeners + notifications)
-  firebase.ts               # Firebase initialization (Auth, Firestore, Storage)
-  query-client.ts           # React Query setup
-  theme-context.tsx         # Dark mode provider (AsyncStorage persisted)
-  language-context.tsx      # Bengali/English i18n provider (AsyncStorage persisted)
-
-components/
-  ErrorBoundary.tsx         # Error boundary wrapper
-  ErrorFallback.tsx         # Error fallback UI
-  GoogleSignInButton.tsx    # Cross-platform Google Sign-In button
-  KeyboardAwareScrollViewCompat.tsx  # Keyboard handling
-
-server/
-  index.ts                 # Express server (landing page + 24h cleanup scheduler)
-  routes.ts                # API routes (includes cleanup-old-messages endpoint)
-  storage.ts               # Legacy storage layer
+EXPO_PUBLIC_FIREBASE_API_KEY
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN
+EXPO_PUBLIC_FIREBASE_PROJECT_ID
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+EXPO_PUBLIC_FIREBASE_APP_ID
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
 ```
-
-### Color Palette
-- Primary: #0A8F7F (Teal)
-- Secondary: #F26B3A (Orange)
-- Accent: #FFB800 (Yellow)
-- Admin Accent: #6C5CE7 (Purple)
-- Background: #F7F8FA
-- Text Primary: #1A202C
-
-### Key Features
-- Role-based access (Client / Owner / Admin)
-- Firebase Auth with email/password + Google Sign-In (web + native)
-- Graceful fallback when Firestore permissions fail
-- Firestore real-time property, chat & notification listings
-- 4-level location selector (Division > District > Upazila)
-- Property details with image gallery and contact options (Call, Message, WhatsApp)
-- Save/favorite properties (Firestore subcollection)
-- **Enhanced Chat System**: FB Messenger-style delete/edit messages, long-press action modal, "delete for me" / "delete for everyone", edit with label, delete all messages in thread
-- **7-Day Auto-Delete**: Backend scheduler cleans up messages older than 7 days every 24 hours
-- **In-App Notifications**: Real-time Firestore listener, notification types (message, new_property, kyc_approved, kyc_declined, system), bell badge with unread count
-- **KYC Notifications**: Admin KYC approve/decline creates notifications for owners
-- **New Property Notifications**: Adding a property notifies all clients
-- **Dark Mode**: Theme toggle with AsyncStorage persistence, applied to profile screen
-- **Language Toggle**: Bengali/English switch with translation system, applied to profile screen
-- **Settings Screens**: Notification settings, privacy policy, help center (FAQ), terms & conditions, about app — all fully functional
-- Edit profile screen (name, phone, whatsapp, gender, occupation, division, NID)
-- Edit property screen (title, description, address, rent, deposit, area, bedrooms, bathrooms)
-- Multi-step property add form for owners
-- Owner dashboard with real stats (properties, views, messages, active count)
-- Secret admin panel with user search, property delete, all settings functional
-- No demo/sample data - fully production-ready with Firestore
-
-### App Context Functions
-- `login`, `register`, `logout`, `googleLogin`
-- `updateUser(updates)` - Update user profile in Firestore
-- `updateProperty(id, updates)` - Update property in Firestore
-- `addProperty(data)` - Add new property + notify all clients
-- `deleteProperty(id)` - Delete property from Firestore
-- `togglePropertyAvailability(id)` - Toggle property active/paused
-- `toggleSaveProperty(id)` - Save/unsave property
-- `createChatThread(recipientId, name, propertyId, title)` - Create or find chat thread
-- `sendMessage(chatId, text)` - Send message + create notification for receiver
-- `getChatMessages(chatId)` - Get messages for a chat
-- `deleteMessage(chatId, messageId, forEveryone)` - Delete message (for me or everyone)
-- `editMessage(chatId, messageId, newText)` - Edit a sent message
-- `deleteAllChatMessages(chatId)` - Delete all messages in a thread
-- `notifications` - Real-time notification list
-- `unreadNotificationCount` - Computed unread count
-- `markNotificationRead(id)` - Mark single notification as read
-- `markAllNotificationsRead()` - Mark all notifications as read
-- `createNotification(userId, type, title, body, data?)` - Create a notification
-- `getFilteredProperties()` - Get properties matching search filters
-- `getOwnerProperties()` - Get current owner's properties
