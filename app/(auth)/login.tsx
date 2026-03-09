@@ -8,7 +8,7 @@ import Colors from '@/constants/colors';
 import * as Haptics from 'expo-haptics';
 
 export default function LoginScreen() {
-  const { login, userRole } = useApp();
+  const { login, googleLogin, userRole } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,6 +36,23 @@ export default function LoginScreen() {
       }
     } else {
       Alert.alert('ত্রুটি', 'ইমেইল বা পাসওয়ার্ড সঠিক নয়। অনুগ্রহ করে আবার চেষ্টা করুন।');
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+    const role = userRole || 'client';
+    const success = await googleLogin(role);
+    setLoading(false);
+    if (success) {
+      if (role === 'owner') {
+        router.replace('/(owner)');
+      } else {
+        router.replace('/(client)');
+      }
+    } else {
+      Alert.alert('ত্রুটি', 'গুগল লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
   };
 
@@ -115,11 +132,9 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.socialRow}>
-        <Pressable style={styles.socialBtn}>
-          <Ionicons name="logo-google" size={22} color="#DB4437" />
-        </Pressable>
-        <Pressable style={styles.socialBtn}>
-          <Ionicons name="logo-facebook" size={22} color="#4267B2" />
+        <Pressable style={styles.googleBtn} onPress={handleGoogleLogin} disabled={loading}>
+          <Ionicons name="logo-google" size={20} color="#DB4437" />
+          <Text style={styles.googleBtnText}>গুগল দিয়ে লগইন</Text>
         </Pressable>
       </View>
 
@@ -171,17 +186,21 @@ const styles = StyleSheet.create({
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 28 },
   dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
   dividerText: { marginHorizontal: 16, fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
-  socialRow: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginBottom: 28 },
-  socialBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+  socialRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 28 },
+  googleBtn: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     backgroundColor: Colors.inputBg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 14,
+    height: 52,
+    paddingHorizontal: 24,
+    gap: 10,
     borderWidth: 1,
     borderColor: Colors.borderLight,
+    flex: 1,
   },
+  googleBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
   registerRow: { flexDirection: 'row', justifyContent: 'center' },
   registerText: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   registerLink: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },

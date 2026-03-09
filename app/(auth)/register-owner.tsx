@@ -8,7 +8,7 @@ import Colors from '@/constants/colors';
 import * as Haptics from 'expo-haptics';
 
 export default function RegisterOwnerScreen() {
-  const { register } = useApp();
+  const { register, googleLogin } = useApp();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -28,10 +28,21 @@ export default function RegisterOwnerScreen() {
     const success = await register({ name, email, phone, whatsapp, nidNumber }, 'owner', password);
     setLoading(false);
     if (success) {
-      router.dismissAll();
       router.replace('/(owner)');
     } else {
       Alert.alert('ত্রুটি', 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। ইমেইল আগে ব্যবহার হয়ে থাকতে পারে বা পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।');
+    }
+  };
+
+  const handleGoogleRegister = async () => {
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLoading(true);
+    const success = await googleLogin('owner');
+    setLoading(false);
+    if (success) {
+      router.replace('/(owner)');
+    } else {
+      Alert.alert('ত্রুটি', 'গুগল সাইন আপ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
   };
 
@@ -125,6 +136,17 @@ export default function RegisterOwnerScreen() {
         >
           <Text style={styles.registerBtnText}>{loading ? 'রেজিস্টার হচ্ছে...' : 'রেজিস্টার করুন'}</Text>
         </Pressable>
+
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>অথবা</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <Pressable style={styles.googleBtn} onPress={handleGoogleRegister} disabled={loading}>
+          <Ionicons name="logo-google" size={20} color="#DB4437" />
+          <Text style={styles.googleBtnText}>গুগল দিয়ে সাইন আপ</Text>
+        </Pressable>
       </View>
     </KeyboardAwareScrollViewCompat>
   );
@@ -157,4 +179,19 @@ const styles = StyleSheet.create({
   registerBtnPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
   registerBtnDisabled: { opacity: 0.6 },
   registerBtnText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
+  dividerText: { marginHorizontal: 16, fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  googleBtn: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: Colors.inputBg,
+    borderRadius: 14,
+    height: 52,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+  },
+  googleBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
 });

@@ -2,10 +2,14 @@ import React, { createContext, useContext, useState, useEffect, useMemo, ReactNo
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Property, ChatThread, SavedProperty, SearchFilters, UserRole } from '@/constants/types';
 import { SAMPLE_PROPERTIES, SAMPLE_CHATS } from '@/constants/mock-data';
-import { auth, db } from '@/lib/firebase';
+import { Platform } from 'react-native';
+import { auth, db, googleProvider } from '@/lib/firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  signInWithCredential,
+  GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
   User as FirebaseUser,
@@ -36,6 +40,7 @@ interface AppContextValue {
   searchFilters: SearchFilters;
   authLoading: boolean;
   login: (email: string, password: string, overrideRole?: UserRole) => Promise<boolean>;
+  googleLogin: (role: UserRole) => Promise<boolean>;
   register: (userData: Partial<User>, role: UserRole, password?: string) => Promise<boolean>;
   logout: () => void;
   setUserRole: (role: UserRole) => void;
@@ -57,6 +62,16 @@ const STORAGE_KEYS = {
   ROLE: '@bashvara_role',
 };
 
+function removeUndefined(obj: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  for (const key of Object.keys(obj)) {
+    if (obj[key] !== undefined) {
+      cleaned[key] = obj[key];
+    }
+  }
+  return cleaned;
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRoleState] = useState<UserRole | null>(null);
@@ -70,15 +85,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
+        const storedRole = await AsyncStorage.getItem(STORAGE_KEYS.ROLE);
+        const fallbackRole = (storedRole as UserRole) || 'client';
         try {
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (userDoc.exists()) {
             const userData = userDoc.data() as User;
             setUser({ ...userData, id: firebaseUser.uid });
             setUserRoleState(userData.role);
+            await AsyncStorage.setItem(STORAGE_KEYS.ROLE, userData.role);
+          } else {
+            const newUser: User = {
+              id: firebaseUser.uid,
+              role: fallbackRole,
+              name: firebaseUser.displayName || '',
+              email: firebaseUser.email || '',
+              phone: firebaseUser.phoneNumber || '',
+              kycVerified: false,
+              createdAt: new Date().toISOString(),
+            };
+            try {
+              await setDoc(doc(db, 'users', firebaseUser.uid), removeUndefined(newUser as any));
+            } catch {}
+            setUser(newUser);
+            setUserRoleState(fallbackRole);
           }
         } catch (e) {
           console.error('Error fetching user data:', e);
+          const fallbackUser: User = {
+            id: firebaseUser.uid,
+            role: fallbackRole,
+            name: firebaseUser.displayName || '',
+            email: firebaseUser.email || '',
+            phone: firebaseUser.phoneNumber || '',
+            kycVerified: false,
+            createdAt: new Date().toISOString(),
+          };
+          setUser(fallbackUser);
+          setUserRoleState(fallbackRole);
         }
         setAuthLoading(false);
       } else {
@@ -214,16 +258,100 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     try {
       const credential = await signInWithEmailAndPassword(auth, email, password);
-      const userDoc = await getDoc(doc(db, 'users', credential.user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data() as User;
-        setUser({ ...userData, id: credential.user.uid });
-        setUserRoleState(userData.role);
-        await AsyncStorage.setItem(STORAGE_KEYS.ROLE, userData.role);
+      try {
+        const userDoc = await getDoc(doc(db, 'users', credential.user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data() as User;
+          setUser({ ...userData, id: credential.user.uid });
+          setUserRoleState(userData.role);
+          await AsyncStorage.setItem(STORAGE_KEYS.ROLE, userData.role);
+        } else {
+          const fallbackUser: User = {
+            id: credential.user.uid,
+            role: effectiveRole as UserRole,
+            name: credential.user.displayName || '',
+            email: credential.user.email || email,
+            phone: credential.user.phoneNumber || '',
+            kycVerified: false,
+            createdAt: new Date().toISOString(),
+          };
+          setUser(fallbackUser);
+          setUserRoleState(effectiveRole as UserRole);
+          await AsyncStorage.setItem(STORAGE_KEYS.ROLE, effectiveRole);
+        }
+      } catch (firestoreErr: any) {
+        console.warn('Firestore read failed, using auth data:', firestoreErr.code);
+        const fallbackUser: User = {
+          id: credential.user.uid,
+          role: effectiveRole as UserRole,
+          name: credential.user.displayName || '',
+          email: credential.user.email || email,
+          phone: credential.user.phoneNumber || '',
+          kycVerified: false,
+          createdAt: new Date().toISOString(),
+        };
+        setUser(fallbackUser);
+        setUserRoleState(effectiveRole as UserRole);
+        await AsyncStorage.setItem(STORAGE_KEYS.ROLE, effectiveRole);
       }
       return true;
     } catch (e: any) {
-      console.error('Login error:', e.message);
+      console.error('Login error:', e.code || e.message);
+      return false;
+    }
+  };
+
+  const googleLogin = async (role: UserRole): Promise<boolean> => {
+    try {
+      if (Platform.OS !== 'web') {
+        console.warn('Google login is only available on web');
+        return false;
+      }
+
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+
+      const userDocRef = doc(db, 'users', firebaseUser.uid);
+      try {
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data() as User;
+          setUser({ ...userData, id: firebaseUser.uid });
+          setUserRoleState(userData.role);
+          await AsyncStorage.setItem(STORAGE_KEYS.ROLE, userData.role);
+        } else {
+          const newUser: User = {
+            id: firebaseUser.uid,
+            role,
+            name: firebaseUser.displayName || '',
+            email: firebaseUser.email || '',
+            phone: firebaseUser.phoneNumber || '',
+            kycVerified: false,
+            createdAt: new Date().toISOString(),
+          };
+
+          await setDoc(userDocRef, removeUndefined(newUser as any));
+          setUser(newUser);
+          setUserRoleState(role);
+          await AsyncStorage.setItem(STORAGE_KEYS.ROLE, role);
+        }
+      } catch (firestoreError: any) {
+        const newUser: User = {
+          id: firebaseUser.uid,
+          role,
+          name: firebaseUser.displayName || '',
+          email: firebaseUser.email || '',
+          phone: firebaseUser.phoneNumber || '',
+          kycVerified: false,
+          createdAt: new Date().toISOString(),
+        };
+        setUser(newUser);
+        setUserRoleState(role);
+        await AsyncStorage.setItem(STORAGE_KEYS.ROLE, role);
+      }
+      return true;
+    } catch (e: any) {
+      console.error('Google login error:', e.message);
       return false;
     }
   };
@@ -236,25 +364,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
         password || ''
       );
 
-      const newUser: User = {
+      const newUser = {
         id: credential.user.uid,
         role,
         name: userData.name || '',
         email: userData.email || '',
         phone: userData.phone || '',
-        whatsapp: userData.whatsapp,
-        gender: userData.gender,
-        occupation: userData.occupation,
-        division: userData.division,
-        district: userData.district,
-        upazila: userData.upazila,
-        nidNumber: userData.nidNumber,
+        whatsapp: userData.whatsapp || '',
+        gender: userData.gender || '',
+        occupation: userData.occupation || '',
+        division: userData.division || '',
+        district: userData.district || '',
+        upazila: userData.upazila || '',
+        nidNumber: userData.nidNumber || '',
         kycVerified: false,
         createdAt: new Date().toISOString(),
       };
 
-      await setDoc(doc(db, 'users', credential.user.uid), newUser);
-      setUser(newUser);
+      await setDoc(doc(db, 'users', credential.user.uid), removeUndefined(newUser));
+      setUser(newUser as User);
       setUserRoleState(role);
       await AsyncStorage.setItem(STORAGE_KEYS.ROLE, role);
       return true;
@@ -319,7 +447,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
       };
 
-      await addDoc(collection(db, 'properties'), newProperty);
+      await addDoc(collection(db, 'properties'), removeUndefined(newProperty));
     } catch (e) {
       console.error('Error adding property:', e);
     }
@@ -386,6 +514,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searchFilters,
       authLoading,
       login,
+      googleLogin,
       register,
       logout,
       setUserRole,
