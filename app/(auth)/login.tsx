@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 28 },
   dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
   dividerText: { marginHorizontal: 16, fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
-  socialRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 28 },
+  socialRow: { marginBottom: 28 },
   registerRow: { flexDirection: 'row', justifyContent: 'center' },
   registerText: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   registerLink: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
