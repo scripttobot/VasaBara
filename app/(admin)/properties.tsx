@@ -7,16 +7,19 @@ import { useApp } from '@/lib/app-context';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Property } from '@/constants/types';
-import Colors from '@/constants/colors';
-
-const ADMIN_ACCENT = '#6C5CE7';
+import { useColors, useTheme } from '@/lib/theme-context';
 
 type FilterType = 'all' | 'pending' | 'verified' | 'featured';
 
 export default function AdminProperties() {
   const insets = useSafeAreaInsets();
   const { properties } = useApp();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const [filter, setFilter] = useState<FilterType>('all');
+
+  const ADMIN_ACCENT = isDark ? '#A78BFA' : '#6C5CE7';
+  const ADMIN_ACCENT_BG = isDark ? '#1E1635' : '#F0EEFF';
 
   const filteredProperties = properties.filter(p => {
     if (filter === 'pending') return !p.verified;
@@ -84,107 +87,107 @@ export default function AdminProperties() {
   };
 
   const renderProperty = ({ item }: { item: Property }) => (
-    <View style={[styles.card, !item.available && styles.unavailableCard]}>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }, !item.available && styles.unavailableCard]}>
       <View style={styles.cardHeader}>
         <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-          <Text style={styles.cardMeta}>
+          <Text style={[styles.cardTitle, { color: colors.textPrimary }]} numberOfLines={1}>{item.title}</Text>
+          <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
             {item.ownerName} • {getTypeLabel(item.type)}
           </Text>
-          <Text style={styles.cardRent}>৳{item.rent.toLocaleString()}/মাস</Text>
+          <Text style={[styles.cardRent, { color: colors.primary }]}>৳{item.rent.toLocaleString()}/মাস</Text>
         </View>
         <View style={styles.cardStats}>
           <View style={styles.viewCount}>
-            <Ionicons name="eye-outline" size={14} color={Colors.textMuted} />
-            <Text style={styles.viewText}>{item.views}</Text>
+            <Ionicons name="eye-outline" size={14} color={colors.textMuted} />
+            <Text style={[styles.viewText, { color: colors.textMuted }]}>{item.views}</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.badgeRow}>
-        <View style={[styles.badge, { backgroundColor: item.verified ? Colors.successLight : Colors.accentLight }]}>
-          <Text style={[styles.badgeText, { color: item.verified ? Colors.success : Colors.accent }]}>
+        <View style={[styles.badge, { backgroundColor: item.verified ? colors.successLight : colors.accentLight }]}>
+          <Text style={[styles.badgeText, { color: item.verified ? colors.success : colors.accent }]}>
             {item.verified ? '✓ ভেরিফাইড' : '⏳ পেন্ডিং'}
           </Text>
         </View>
         {item.featured && (
-          <View style={[styles.badge, { backgroundColor: '#FFF8E6' }]}>
-            <Text style={[styles.badgeText, { color: '#FFB800' }]}>★ ফিচার্ড</Text>
+          <View style={[styles.badge, { backgroundColor: isDark ? '#2A2410' : '#FFF8E6' }]}>
+            <Text style={[styles.badgeText, { color: isDark ? '#FFD060' : '#FFB800' }]}>★ ফিচার্ড</Text>
           </View>
         )}
         {!item.available && (
-          <View style={[styles.badge, { backgroundColor: Colors.dangerLight }]}>
-            <Text style={[styles.badgeText, { color: Colors.danger }]}>অনুপলব্ধ</Text>
+          <View style={[styles.badge, { backgroundColor: colors.dangerLight }]}>
+            <Text style={[styles.badgeText, { color: colors.danger }]}>অনুপলব্ধ</Text>
           </View>
         )}
       </View>
 
       <View style={styles.actionRow}>
         <Pressable
-          style={[styles.actionBtn, { backgroundColor: item.verified ? Colors.dangerLight : Colors.successLight }]}
+          style={[styles.actionBtn, { backgroundColor: item.verified ? colors.dangerLight : colors.successLight }]}
           onPress={() => toggleVerify(item.id, item.verified)}
         >
           <Ionicons
             name={item.verified ? 'close-circle' : 'checkmark-circle'}
             size={16}
-            color={item.verified ? Colors.danger : Colors.success}
+            color={item.verified ? colors.danger : colors.success}
           />
-          <Text style={[styles.actionText, { color: item.verified ? Colors.danger : Colors.success }]}>
+          <Text style={[styles.actionText, { color: item.verified ? colors.danger : colors.success }]}>
             {item.verified ? 'রিজেক্ট' : 'অ্যাপ্রুভ'}
           </Text>
         </Pressable>
 
         <Pressable
-          style={[styles.actionBtn, { backgroundColor: item.featured ? Colors.accentLight : '#F0EEFF' }]}
+          style={[styles.actionBtn, { backgroundColor: item.featured ? colors.accentLight : ADMIN_ACCENT_BG }]}
           onPress={() => toggleFeatured(item.id, item.featured)}
         >
           <Ionicons
             name={item.featured ? 'star-outline' : 'star'}
             size={16}
-            color={item.featured ? Colors.accent : ADMIN_ACCENT}
+            color={item.featured ? colors.accent : ADMIN_ACCENT}
           />
-          <Text style={[styles.actionText, { color: item.featured ? Colors.accent : ADMIN_ACCENT }]}>
+          <Text style={[styles.actionText, { color: item.featured ? colors.accent : ADMIN_ACCENT }]}>
             {item.featured ? 'আনফিচার' : 'ফিচার'}
           </Text>
         </Pressable>
 
         <Pressable
-          style={[styles.actionBtn, { backgroundColor: item.available ? Colors.dangerLight : Colors.successLight }]}
+          style={[styles.actionBtn, { backgroundColor: item.available ? colors.dangerLight : colors.successLight }]}
           onPress={() => toggleAvailable(item.id, item.available)}
         >
           <Ionicons
             name={item.available ? 'eye-off' : 'eye'}
             size={16}
-            color={item.available ? Colors.danger : Colors.success}
+            color={item.available ? colors.danger : colors.success}
           />
         </Pressable>
       </View>
 
       <View style={styles.actionRow}>
         <Pressable
-          style={[styles.actionBtn, { backgroundColor: Colors.primaryLight }]}
+          style={[styles.actionBtn, { backgroundColor: colors.primaryLight }]}
           onPress={() => router.push(`/property/${item.id}`)}
         >
-          <Ionicons name="open-outline" size={16} color={Colors.primary} />
-          <Text style={[styles.actionText, { color: Colors.primary }]}>বিস্তারিত</Text>
+          <Ionicons name="open-outline" size={16} color={colors.primary} />
+          <Text style={[styles.actionText, { color: colors.primary }]}>বিস্তারিত</Text>
         </Pressable>
 
         <Pressable
-          style={[styles.actionBtn, { backgroundColor: Colors.dangerLight }]}
+          style={[styles.actionBtn, { backgroundColor: colors.dangerLight }]}
           onPress={() => handleDelete(item.id, item.title)}
         >
-          <Ionicons name="trash-outline" size={16} color={Colors.danger} />
-          <Text style={[styles.actionText, { color: Colors.danger }]}>ডিলিট</Text>
+          <Ionicons name="trash-outline" size={16} color={colors.danger} />
+          <Text style={[styles.actionText, { color: colors.danger }]}>ডিলিট</Text>
         </Pressable>
       </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
-        <Text style={styles.title}>প্রপার্টি ম্যানেজমেন্ট</Text>
-        <Text style={styles.subtitle}>মোট {properties.length}টি প্রপার্টি</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>প্রপার্টি ম্যানেজমেন্ট</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>মোট {properties.length}টি প্রপার্টি</Text>
       </View>
 
       <View style={styles.filterRow}>
@@ -196,10 +199,10 @@ export default function AdminProperties() {
         ] as const).map(f => (
           <Pressable
             key={f.key}
-            style={[styles.filterBtn, filter === f.key && styles.filterBtnActive]}
+            style={[styles.filterBtn, { backgroundColor: colors.card, borderColor: colors.border }, filter === f.key && { backgroundColor: ADMIN_ACCENT, borderColor: ADMIN_ACCENT }]}
             onPress={() => setFilter(f.key)}
           >
-            <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>{f.label}</Text>
+            <Text style={[styles.filterText, { color: colors.textSecondary }, filter === f.key && { color: '#FFFFFF' }]}>{f.label}</Text>
           </Pressable>
         ))}
       </View>
@@ -212,8 +215,8 @@ export default function AdminProperties() {
         scrollEnabled={filteredProperties.length > 0}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="business-outline" size={48} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>কোনো প্রপার্টি পাওয়া যায়নি</Text>
+            <Ionicons name="business-outline" size={48} color={colors.textMuted} />
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>কোনো প্রপার্টি পাওয়া যায়নি</Text>
           </View>
         }
       />
@@ -222,40 +225,34 @@ export default function AdminProperties() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingBottom: 16 },
-  title: { fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  subtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },
+  container: { flex: 1 },
+  header: { paddingHorizontal: 20, paddingBottom: 16 },
+  title: { fontSize: 22, fontFamily: 'Inter_700Bold' },
+  subtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
   filterRow: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, gap: 8 },
   filterBtn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: Colors.border,
   },
-  filterBtnActive: { backgroundColor: ADMIN_ACCENT, borderColor: ADMIN_ACCENT },
-  filterText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
-  filterTextActive: { color: '#FFFFFF' },
+  filterText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   list: { paddingHorizontal: 20, paddingBottom: 100 },
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
   },
   unavailableCard: { opacity: 0.6 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between' },
   cardInfo: { flex: 1 },
-  cardTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
-  cardMeta: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },
-  cardRent: { fontSize: 14, fontFamily: 'Inter_700Bold', color: Colors.primary, marginTop: 4 },
+  cardTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold' },
+  cardMeta: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
+  cardRent: { fontSize: 14, fontFamily: 'Inter_700Bold', marginTop: 4 },
   cardStats: { alignItems: 'flex-end' },
   viewCount: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  viewText: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  viewText: { fontSize: 12, fontFamily: 'Inter_400Regular' },
   badgeRow: { flexDirection: 'row', gap: 6, marginTop: 10 },
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   badgeText: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
@@ -271,5 +268,5 @@ const styles = StyleSheet.create({
   },
   actionText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
-  emptyText: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  emptyText: { fontSize: 15, fontFamily: 'Inter_400Regular' },
 });

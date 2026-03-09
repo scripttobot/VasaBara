@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking } from
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
 
 const faqItems = [
   {
@@ -38,6 +38,7 @@ const faqItems = [
 
 export default function HelpCenterScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useColors();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const toggleExpand = (index: number) => {
@@ -45,87 +46,87 @@ export default function HelpCenterScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12), backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>সাহায্য কেন্দ্র</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>সাহায্য কেন্দ্র</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={styles.intro}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="help-buoy" size={32} color={Colors.accent} />
+          <View style={[styles.iconCircle, { backgroundColor: colors.accentLight }]}>
+            <Ionicons name="help-buoy" size={32} color={colors.accent} />
           </View>
-          <Text style={styles.introTitle}>আমরা সাহায্য করতে এখানে</Text>
-          <Text style={styles.introText}>
+          <Text style={[styles.introTitle, { color: colors.textPrimary }]}>আমরা সাহায্য করতে এখানে</Text>
+          <Text style={[styles.introText, { color: colors.textSecondary }]}>
             সচরাচর জিজ্ঞাসিত প্রশ্নের উত্তর নিচে পাবেন। আরো সাহায্য দরকার হলে আমাদের সাথে যোগাযোগ করুন।
           </Text>
         </View>
 
-        <Text style={styles.faqTitle}>সচরাচর জিজ্ঞাসিত প্রশ্ন</Text>
+        <Text style={[styles.faqTitle, { color: colors.textPrimary }]}>সচরাচর জিজ্ঞাসিত প্রশ্ন</Text>
 
         {faqItems.map((item, index) => (
           <Pressable
             key={index}
-            style={styles.faqItem}
+            style={[styles.faqItem, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => toggleExpand(index)}
           >
             <View style={styles.faqHeader}>
               <View style={styles.questionRow}>
-                <View style={[styles.questionIcon, { backgroundColor: Colors.primary + '12' }]}>
-                  <Text style={styles.questionNumber}>{index + 1}</Text>
+                <View style={[styles.questionIcon, { backgroundColor: colors.primary + '12' }]}>
+                  <Text style={[styles.questionNumber, { color: colors.primary }]}>{index + 1}</Text>
                 </View>
-                <Text style={styles.question}>{item.question}</Text>
+                <Text style={[styles.question, { color: colors.textPrimary }]}>{item.question}</Text>
               </View>
               <Ionicons
                 name={expandedIndex === index ? 'chevron-up' : 'chevron-down'}
                 size={18}
-                color={Colors.textMuted}
+                color={colors.textMuted}
               />
             </View>
             {expandedIndex === index && (
-              <Text style={styles.answer}>{item.answer}</Text>
+              <Text style={[styles.answer, { color: colors.textSecondary, borderTopColor: colors.borderLight }]}>{item.answer}</Text>
             )}
           </Pressable>
         ))}
 
         <View style={styles.contactSection}>
-          <Text style={styles.contactSectionTitle}>যোগাযোগ</Text>
+          <Text style={[styles.contactSectionTitle, { color: colors.textPrimary }]}>যোগাযোগ</Text>
 
           <Pressable
-            style={styles.contactItem}
+            style={[styles.contactItem, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => Linking.openURL('mailto:support@bashvara.com')}
           >
-            <View style={[styles.contactIcon, { backgroundColor: Colors.primary + '12' }]}>
-              <Ionicons name="mail-outline" size={20} color={Colors.primary} />
+            <View style={[styles.contactIcon, { backgroundColor: colors.primary + '12' }]}>
+              <Ionicons name="mail-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.contactInfo}>
-              <Text style={styles.contactLabel}>ইমেইল</Text>
-              <Text style={styles.contactValue}>support@bashvara.com</Text>
+              <Text style={[styles.contactLabel, { color: colors.textMuted }]}>ইমেইল</Text>
+              <Text style={[styles.contactValue, { color: colors.textPrimary }]}>support@bashvara.com</Text>
             </View>
-            <Ionicons name="open-outline" size={16} color={Colors.textMuted} />
+            <Ionicons name="open-outline" size={16} color={colors.textMuted} />
           </Pressable>
 
           <Pressable
-            style={styles.contactItem}
+            style={[styles.contactItem, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => Linking.openURL('tel:+8801700000000')}
           >
-            <View style={[styles.contactIcon, { backgroundColor: Colors.success + '12' }]}>
-              <Ionicons name="call-outline" size={20} color={Colors.success} />
+            <View style={[styles.contactIcon, { backgroundColor: colors.success + '12' }]}>
+              <Ionicons name="call-outline" size={20} color={colors.success} />
             </View>
             <View style={styles.contactInfo}>
-              <Text style={styles.contactLabel}>ফোন</Text>
-              <Text style={styles.contactValue}>+880 1700-000000</Text>
+              <Text style={[styles.contactLabel, { color: colors.textMuted }]}>ফোন</Text>
+              <Text style={[styles.contactValue, { color: colors.textPrimary }]}>+880 1700-000000</Text>
             </View>
-            <Ionicons name="open-outline" size={16} color={Colors.textMuted} />
+            <Ionicons name="open-outline" size={16} color={colors.textMuted} />
           </Pressable>
 
-          <View style={styles.hoursBox}>
-            <Ionicons name="time-outline" size={16} color={Colors.textSecondary} />
-            <Text style={styles.hoursText}>সাপোর্ট আওয়ার: সকাল ৯টা - রাত ৯টা (শনি-বৃহস্পতি)</Text>
+          <View style={[styles.hoursBox, { backgroundColor: colors.inputBg }]}>
+            <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+            <Text style={[styles.hoursText, { color: colors.textSecondary }]}>সাপোর্ট আওয়ার: সকাল ৯টা - রাত ৯টা (শনি-বৃহস্পতি)</Text>
           </View>
         </View>
       </ScrollView>
@@ -134,61 +135,61 @@ export default function HelpCenterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingBottom: 14, backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1, borderBottomColor: Colors.border,
+    paddingHorizontal: 20, paddingBottom: 14,
+    borderBottomWidth: 1,
   },
-  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold' },
   intro: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 28, paddingBottom: 8 },
   iconCircle: {
-    width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.accentLight,
+    width: 64, height: 64, borderRadius: 32,
     alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
-  introTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginBottom: 8 },
+  introTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', marginBottom: 8 },
   introText: {
-    fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary,
+    fontSize: 14, fontFamily: 'Inter_400Regular',
     textAlign: 'center', lineHeight: 22,
   },
   faqTitle: {
-    fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.textPrimary,
+    fontSize: 16, fontFamily: 'Inter_700Bold',
     marginHorizontal: 20, marginTop: 20, marginBottom: 10,
   },
   faqItem: {
-    backgroundColor: '#FFFFFF', marginHorizontal: 20, marginBottom: 10,
-    borderRadius: 14, borderWidth: 1, borderColor: Colors.border, padding: 16,
+    marginHorizontal: 20, marginBottom: 10,
+    borderRadius: 14, borderWidth: 1, padding: 16,
   },
   faqHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   questionRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 },
   questionIcon: {
     width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center',
   },
-  questionNumber: { fontSize: 13, fontFamily: 'Inter_700Bold', color: Colors.primary },
-  question: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, flex: 1 },
+  questionNumber: { fontSize: 13, fontFamily: 'Inter_700Bold' },
+  question: { fontSize: 14, fontFamily: 'Inter_600SemiBold', flex: 1 },
   answer: {
-    fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary,
+    fontSize: 14, fontFamily: 'Inter_400Regular',
     lineHeight: 22, marginTop: 12, paddingTop: 12,
-    borderTopWidth: 1, borderTopColor: Colors.borderLight,
+    borderTopWidth: 1,
   },
   contactSection: {
     marginHorizontal: 20, marginTop: 24,
   },
   contactSectionTitle: {
-    fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginBottom: 12,
+    fontSize: 16, fontFamily: 'Inter_700Bold', marginBottom: 12,
   },
   contactItem: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
-    borderRadius: 14, borderWidth: 1, borderColor: Colors.border,
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 14, borderWidth: 1,
     padding: 16, marginBottom: 10, gap: 12,
   },
   contactIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   contactInfo: { flex: 1 },
-  contactLabel: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textMuted },
-  contactValue: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  contactLabel: { fontSize: 12, fontFamily: 'Inter_500Medium' },
+  contactValue: { fontSize: 15, fontFamily: 'Inter_600SemiBold' },
   hoursBox: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: Colors.inputBg, borderRadius: 10, padding: 12, marginTop: 4,
+    borderRadius: 10, padding: 12, marginTop: 4,
   },
-  hoursText: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
+  hoursText: { fontSize: 13, fontFamily: 'Inter_400Regular' },
 });

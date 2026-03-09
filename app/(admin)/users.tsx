@@ -5,16 +5,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { User } from '@/constants/types';
-import Colors from '@/constants/colors';
-
-const ADMIN_ACCENT = '#6C5CE7';
+import { useColors, useTheme } from '@/lib/theme-context';
 
 export default function AdminUsers() {
   const insets = useSafeAreaInsets();
+  const colors = useColors();
+  const { isDark } = useTheme();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState<'all' | 'client' | 'owner'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const ADMIN_ACCENT = isDark ? '#A78BFA' : '#6C5CE7';
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -76,35 +78,35 @@ export default function AdminUsers() {
   };
 
   const renderUser = ({ item }: { item: User }) => (
-    <View style={styles.userCard}>
+    <View style={[styles.userCard, { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
       <View style={styles.userHeader}>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={22} color={Colors.textMuted} />
+        <View style={[styles.avatar, { backgroundColor: colors.inputBg }]}>
+          <Ionicons name="person" size={22} color={colors.textMuted} />
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{item.name || 'নাম নেই'}</Text>
-          <Text style={styles.userEmail}>{item.email}</Text>
-          <Text style={styles.userPhone}>{item.phone || '-'}</Text>
+          <Text style={[styles.userName, { color: colors.textPrimary }]}>{item.name || 'নাম নেই'}</Text>
+          <Text style={[styles.userEmail, { color: colors.textSecondary }]}>{item.email}</Text>
+          <Text style={[styles.userPhone, { color: colors.textMuted }]}>{item.phone || '-'}</Text>
         </View>
-        <View style={[styles.roleBadge, { backgroundColor: item.role === 'owner' ? Colors.secondaryLight : Colors.primaryLight }]}>
-          <Text style={[styles.roleText, { color: item.role === 'owner' ? Colors.secondary : Colors.primary }]}>
+        <View style={[styles.roleBadge, { backgroundColor: item.role === 'owner' ? colors.secondaryLight : colors.primaryLight }]}>
+          <Text style={[styles.roleText, { color: item.role === 'owner' ? colors.secondary : colors.primary }]}>
             {item.role === 'owner' ? 'বাড়িওয়ালা' : 'ভাড়াটিয়া'}
           </Text>
         </View>
       </View>
 
-      <View style={styles.userMeta}>
+      <View style={[styles.userMeta, { borderTopColor: colors.borderLight }]}>
         <View style={styles.metaItem}>
-          <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} />
-          <Text style={styles.metaText}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('bn-BD') : '-'}</Text>
+          <Ionicons name="calendar-outline" size={14} color={colors.textMuted} />
+          <Text style={[styles.metaText, { color: colors.textMuted }]}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('bn-BD') : '-'}</Text>
         </View>
-        <View style={[styles.kycBadge, { backgroundColor: item.kycVerified ? Colors.successLight : Colors.accentLight }]}>
+        <View style={[styles.kycBadge, { backgroundColor: item.kycVerified ? colors.successLight : colors.accentLight }]}>
           <Ionicons
             name={item.kycVerified ? 'checkmark-circle' : 'time'}
             size={14}
-            color={item.kycVerified ? Colors.success : Colors.accent}
+            color={item.kycVerified ? colors.success : colors.accent}
           />
-          <Text style={[styles.kycText, { color: item.kycVerified ? Colors.success : Colors.accent }]}>
+          <Text style={[styles.kycText, { color: item.kycVerified ? colors.success : colors.accent }]}>
             {item.kycVerified ? 'KYC ভেরিফাইড' : 'KYC পেন্ডিং'}
           </Text>
         </View>
@@ -112,15 +114,15 @@ export default function AdminUsers() {
 
       <View style={styles.userActions}>
         <Pressable
-          style={[styles.actionBtn, { backgroundColor: item.kycVerified ? Colors.accentLight : Colors.successLight }]}
+          style={[styles.actionBtn, { backgroundColor: item.kycVerified ? colors.accentLight : colors.successLight }]}
           onPress={() => toggleKYC(item.id, !!item.kycVerified)}
         >
           <Ionicons
             name={item.kycVerified ? 'close-circle' : 'checkmark-circle'}
             size={16}
-            color={item.kycVerified ? Colors.accent : Colors.success}
+            color={item.kycVerified ? colors.accent : colors.success}
           />
-          <Text style={[styles.actionBtnText, { color: item.kycVerified ? Colors.accent : Colors.success }]}>
+          <Text style={[styles.actionBtnText, { color: item.kycVerified ? colors.accent : colors.success }]}>
             {item.kycVerified ? 'KYC বাতিল' : 'KYC অ্যাপ্রুভ'}
           </Text>
         </Pressable>
@@ -130,26 +132,26 @@ export default function AdminUsers() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={ADMIN_ACCENT} />
-        <Text style={styles.loadingText}>ইউজার লোড হচ্ছে...</Text>
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>ইউজার লোড হচ্ছে...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
-        <Text style={styles.title}>ইউজার ম্যানেজমেন্ট</Text>
-        <Text style={styles.subtitle}>মোট {users.filter(u => u.role !== 'admin').length} জন ইউজার</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>ইউজার ম্যানেজমেন্ট</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>মোট {users.filter(u => u.role !== 'admin').length} জন ইউজার</Text>
       </View>
 
-      <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
+      <View style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
+        <Ionicons name="search-outline" size={18} color={colors.textMuted} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.textPrimary }]}
           placeholder="নাম, ইমেইল বা ফোন দিয়ে খুঁজুন..."
-          placeholderTextColor={Colors.textMuted}
+          placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
           autoCapitalize="none"
@@ -157,7 +159,7 @@ export default function AdminUsers() {
         />
         {searchQuery.length > 0 && (
           <Pressable onPress={() => setSearchQuery('')}>
-            <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+            <Ionicons name="close-circle" size={18} color={colors.textMuted} />
           </Pressable>
         )}
       </View>
@@ -166,10 +168,10 @@ export default function AdminUsers() {
         {(['all', 'client', 'owner'] as const).map(role => (
           <Pressable
             key={role}
-            style={[styles.filterBtn, filterRole === role && styles.filterBtnActive]}
+            style={[styles.filterBtn, { backgroundColor: colors.card, borderColor: colors.border }, filterRole === role && { backgroundColor: ADMIN_ACCENT, borderColor: ADMIN_ACCENT }]}
             onPress={() => setFilterRole(role)}
           >
-            <Text style={[styles.filterBtnText, filterRole === role && styles.filterBtnTextActive]}>
+            <Text style={[styles.filterBtnText, { color: colors.textSecondary }, filterRole === role && { color: '#FFFFFF' }]}>
               {role === 'all' ? 'সকল' : role === 'client' ? 'ভাড়াটিয়া' : 'বাড়িওয়ালা'}
             </Text>
           </Pressable>
@@ -184,8 +186,8 @@ export default function AdminUsers() {
         scrollEnabled={filteredUsers.length > 0}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={48} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>কোনো ইউজার পাওয়া যায়নি</Text>
+            <Ionicons name="people-outline" size={48} color={colors.textMuted} />
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>কোনো ইউজার পাওয়া যায়নি</Text>
           </View>
         }
       />
@@ -194,30 +196,27 @@ export default function AdminUsers() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1 },
   centered: { justifyContent: 'center', alignItems: 'center' },
-  loadingText: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 12 },
-  header: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingBottom: 16 },
-  title: { fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  subtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },
+  loadingText: { fontSize: 14, fontFamily: 'Inter_400Regular', marginTop: 12 },
+  header: { paddingHorizontal: 20, paddingBottom: 16 },
+  title: { fontSize: 22, fontFamily: 'Inter_700Bold' },
+  subtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
     marginTop: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
     gap: 8,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
     fontFamily: 'Inter_400Regular',
-    color: Colors.textPrimary,
     padding: 0,
   },
   filterRow: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, gap: 8 },
@@ -225,40 +224,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: Colors.border,
   },
-  filterBtnActive: { backgroundColor: ADMIN_ACCENT, borderColor: ADMIN_ACCENT },
-  filterBtnText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
-  filterBtnTextActive: { color: '#FFFFFF' },
+  filterBtnText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   list: { paddingHorizontal: 20, paddingBottom: 100 },
   userCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
   },
   userHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   userInfo: { flex: 1 },
-  userName: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
-  userEmail: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  userPhone: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  userName: { fontSize: 15, fontFamily: 'Inter_600SemiBold' },
+  userEmail: { fontSize: 12, fontFamily: 'Inter_400Regular' },
+  userPhone: { fontSize: 12, fontFamily: 'Inter_400Regular' },
   roleBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   roleText: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
-  userMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.borderLight },
+  userMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 10, borderTopWidth: 1 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  metaText: { fontSize: 12, fontFamily: 'Inter_400Regular' },
   kycBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   kycText: { fontSize: 11, fontFamily: 'Inter_500Medium' },
   userActions: { flexDirection: 'row', gap: 8, marginTop: 12 },
@@ -273,5 +265,5 @@ const styles = StyleSheet.create({
   },
   actionBtnText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
-  emptyText: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  emptyText: { fontSize: 15, fontFamily: 'Inter_400Regular' },
 });

@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
 
 const PREFS_KEY = '@bashvara_notification_prefs';
 
@@ -24,6 +24,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
 
 export default function NotificationSettingsScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useColors();
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
 
   useEffect(() => {
@@ -46,30 +47,30 @@ export default function NotificationSettingsScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 0) }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 0), backgroundColor: colors.surface, borderBottomColor: colors.borderLight }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>নোটিফিকেশন সেটিংস</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>নোটিফিকেশন সেটিংস</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.content}>
         {items.map(item => (
-          <View key={item.key} style={styles.row}>
-            <View style={[styles.iconCircle, { backgroundColor: Colors.primaryLight }]}>
-              <Ionicons name={item.icon} size={20} color={Colors.primary} />
+          <View key={item.key} style={[styles.row, { borderBottomColor: colors.borderLight }]}>
+            <View style={[styles.iconCircle, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name={item.icon} size={20} color={colors.primary} />
             </View>
             <View style={styles.rowText}>
-              <Text style={styles.rowLabel}>{item.label}</Text>
-              <Text style={styles.rowDesc}>{item.desc}</Text>
+              <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{item.label}</Text>
+              <Text style={[styles.rowDesc, { color: colors.textMuted }]}>{item.desc}</Text>
             </View>
             <Switch
               value={prefs[item.key]}
               onValueChange={(val) => updatePref(item.key, val)}
-              trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-              thumbColor={prefs[item.key] ? Colors.primary : '#ccc'}
+              trackColor={{ false: colors.border, true: colors.primaryLight }}
+              thumbColor={prefs[item.key] ? colors.primary : '#ccc'}
             />
           </View>
         ))}
@@ -79,14 +80,14 @@ export default function NotificationSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1 },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold' },
   content: { padding: 16 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   rowText: { flex: 1 },
-  rowLabel: { fontSize: 15, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
-  rowDesc: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted, marginTop: 2 },
+  rowLabel: { fontSize: 15, fontFamily: 'Inter_500Medium' },
+  rowDesc: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
 });

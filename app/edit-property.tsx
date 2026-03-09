@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, Alert, Platform, ScrollVi
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/lib/app-context';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
@@ -11,6 +11,7 @@ export default function EditPropertyScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getPropertyById, updateProperty, user } = useApp();
   const insets = useSafeAreaInsets();
+  const colors = useColors();
   const property = getPropertyById(id!);
   const isOwner = property && user && property.ownerId === user.id;
 
@@ -27,10 +28,10 @@ export default function EditPropertyScreen() {
 
   if (!property || !isOwner) {
     return (
-      <View style={[styles.container, styles.center, { paddingTop: Platform.OS === 'web' ? 67 : insets.top }]}>
-        <Text style={styles.errorText}>{!property ? 'প্রপার্টি পাওয়া যায়নি' : 'আপনার এই প্রপার্টি সম্পাদনা করার অনুমতি নেই'}</Text>
+      <View style={[styles.container, styles.center, { backgroundColor: colors.background, paddingTop: Platform.OS === 'web' ? 67 : insets.top }]}>
+        <Text style={[styles.errorText, { color: colors.textMuted }]}>{!property ? 'প্রপার্টি পাওয়া যায়নি' : 'আপনার এই প্রপার্টি সম্পাদনা করার অনুমতি নেই'}</Text>
         <Pressable onPress={() => router.back()} style={styles.backLink}>
-          <Text style={styles.backLinkText}>ফিরে যান</Text>
+          <Text style={[styles.backLinkText, { color: colors.primary }]}>ফিরে যান</Text>
         </Pressable>
       </View>
     );
@@ -66,67 +67,67 @@ export default function EditPropertyScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: Platform.OS === 'web' ? 67 + insets.top : insets.top }]}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Platform.OS === 'web' ? 67 + insets.top : insets.top }]}>
+      <View style={[styles.header, { borderBottomColor: colors.borderLight, backgroundColor: colors.surface }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>প্রপার্টি সম্পাদনা</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>প্রপার্টি সম্পাদনা</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.contentContainer}>
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>শিরোনাম *</Text>
-            <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="প্রপার্টির শিরোনাম" placeholderTextColor={Colors.textMuted} />
+            <Text style={[styles.label, { color: colors.textPrimary }]}>শিরোনাম *</Text>
+            <TextInput style={[styles.input, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderLight }]} value={title} onChangeText={setTitle} placeholder="প্রপার্টির শিরোনাম" placeholderTextColor={colors.textMuted} />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>বিবরণ</Text>
-            <TextInput style={[styles.input, styles.textArea]} value={description} onChangeText={setDescription} placeholder="বিস্তারিত বিবরণ" placeholderTextColor={Colors.textMuted} multiline numberOfLines={4} textAlignVertical="top" />
+            <Text style={[styles.label, { color: colors.textPrimary }]}>বিবরণ</Text>
+            <TextInput style={[styles.input, styles.textArea, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderLight }]} value={description} onChangeText={setDescription} placeholder="বিস্তারিত বিবরণ" placeholderTextColor={colors.textMuted} multiline numberOfLines={4} textAlignVertical="top" />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>ঠিকানা *</Text>
-            <TextInput style={styles.input} value={address} onChangeText={setAddress} placeholder="পূর্ণ ঠিকানা" placeholderTextColor={Colors.textMuted} />
+            <Text style={[styles.label, { color: colors.textPrimary }]}>ঠিকানা *</Text>
+            <TextInput style={[styles.input, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderLight }]} value={address} onChangeText={setAddress} placeholder="পূর্ণ ঠিকানা" placeholderTextColor={colors.textMuted} />
           </View>
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>ভাড়া (৳) *</Text>
-              <TextInput style={styles.input} value={rent} onChangeText={setRent} keyboardType="number-pad" placeholder="0" placeholderTextColor={Colors.textMuted} />
+              <Text style={[styles.label, { color: colors.textPrimary }]}>ভাড়া (৳) *</Text>
+              <TextInput style={[styles.input, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderLight }]} value={rent} onChangeText={setRent} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.textMuted} />
             </View>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>জামানত (৳)</Text>
-              <TextInput style={styles.input} value={deposit} onChangeText={setDeposit} keyboardType="number-pad" placeholder="0" placeholderTextColor={Colors.textMuted} />
-            </View>
-          </View>
-
-          <View style={styles.row}>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>সার্ভিস চার্জ</Text>
-              <TextInput style={styles.input} value={serviceCharge} onChangeText={setServiceCharge} keyboardType="number-pad" placeholder="0" placeholderTextColor={Colors.textMuted} />
-            </View>
-            <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>আয়তন (sq ft)</Text>
-              <TextInput style={styles.input} value={area} onChangeText={setArea} keyboardType="number-pad" placeholder="0" placeholderTextColor={Colors.textMuted} />
+              <Text style={[styles.label, { color: colors.textPrimary }]}>জামানত (৳)</Text>
+              <TextInput style={[styles.input, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderLight }]} value={deposit} onChangeText={setDeposit} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.textMuted} />
             </View>
           </View>
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>বেডরুম</Text>
-              <TextInput style={styles.input} value={bedrooms} onChangeText={setBedrooms} keyboardType="number-pad" placeholder="0" placeholderTextColor={Colors.textMuted} />
+              <Text style={[styles.label, { color: colors.textPrimary }]}>সার্ভিস চার্জ</Text>
+              <TextInput style={[styles.input, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderLight }]} value={serviceCharge} onChangeText={setServiceCharge} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.textMuted} />
             </View>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>বাথরুম</Text>
-              <TextInput style={styles.input} value={bathrooms} onChangeText={setBathrooms} keyboardType="number-pad" placeholder="0" placeholderTextColor={Colors.textMuted} />
+              <Text style={[styles.label, { color: colors.textPrimary }]}>আয়তন (sq ft)</Text>
+              <TextInput style={[styles.input, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderLight }]} value={area} onChangeText={setArea} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.textMuted} />
+            </View>
+          </View>
+
+          <View style={styles.row}>
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text style={[styles.label, { color: colors.textPrimary }]}>বেডরুম</Text>
+              <TextInput style={[styles.input, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderLight }]} value={bedrooms} onChangeText={setBedrooms} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.textMuted} />
+            </View>
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text style={[styles.label, { color: colors.textPrimary }]}>বাথরুম</Text>
+              <TextInput style={[styles.input, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderLight }]} value={bathrooms} onChangeText={setBathrooms} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.textMuted} />
             </View>
           </View>
 
           <Pressable
-            style={({ pressed }) => [styles.saveBtn, pressed && styles.saveBtnPressed, loading && styles.saveBtnDisabled]}
+            style={({ pressed }) => [styles.saveBtn, { backgroundColor: colors.primary }, pressed && styles.saveBtnPressed, loading && styles.saveBtnDisabled]}
             onPress={handleSave}
             disabled={loading}
           >
@@ -139,23 +140,23 @@ export default function EditPropertyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center' },
-  errorText: { fontSize: 16, fontFamily: 'Inter_500Medium', color: Colors.textMuted },
+  errorText: { fontSize: 16, fontFamily: 'Inter_500Medium' },
   backLink: { marginTop: 16 },
-  backLinkText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  backLinkText: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold' },
   scroll: { flex: 1 },
   contentContainer: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 },
   form: { gap: 16 },
   inputGroup: { gap: 6 },
-  label: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
-  input: { backgroundColor: Colors.inputBg, borderRadius: 12, paddingHorizontal: 14, height: 50, fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textPrimary, borderWidth: 1, borderColor: Colors.borderLight },
+  label: { fontSize: 13, fontFamily: 'Inter_500Medium' },
+  input: { borderRadius: 12, paddingHorizontal: 14, height: 50, fontSize: 15, fontFamily: 'Inter_400Regular', borderWidth: 1 },
   textArea: { height: 100, paddingTop: 14, textAlignVertical: 'top' as const },
   row: { flexDirection: 'row', gap: 12 },
-  saveBtn: { backgroundColor: Colors.primary, height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
+  saveBtn: { height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
   saveBtnPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },

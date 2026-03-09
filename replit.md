@@ -25,14 +25,15 @@ Preferred communication style: Simple, everyday language.
   - `app/property/[id].tsx` — Property detail screen
   - Standalone screens: search, edit-profile, edit-property, notifications, notification-settings, privacy, terms, about, help-center
 - **Navigation**: Tab-based navigation per role group; uses native tabs on iOS (via `expo-router/unstable-native-tabs`) with SF Symbols, falls back to classic Expo Router Tabs on Android/Web
-- **UI**: Custom components with Inter font family, Ionicons for icons, linear gradients, blur effects, and animated entries via Reanimated
-- **State Management**: React Context (`AppProvider`, `ThemeProvider`, `LanguageProvider`) combined with Firebase real-time listeners (`onSnapshot`). TanStack React Query is also configured but primarily used as a supplementary data-fetching layer
+- **UI**: Premium native-feel design with Inter font, Ionicons, linear gradients, blur effects, glass-morphism inputs, spring-animated buttons (`AnimatedPressable`), staggered entry animations via Reanimated, and full dark/light theme system
+- **Design System**: `constants/colors.ts` exports `getColors(isDark)` returning complete `ThemeColors` interface with gradient arrays for both themes. `useColors()` hook for theme-aware styling. `AnimatedPressable` component for spring-physics press animations with optional gradient backgrounds and haptic feedback
+- **State Management**: React Context (`AppProvider`, `ThemeProvider`, `LanguageProvider`) combined with Firebase real-time listeners (`onSnapshot`). `ThemeProvider` now includes computed `colors` from `getColors(isDark)`. TanStack React Query is also configured but primarily used as a supplementary data-fetching layer
 - **Platform Compatibility**: Platform-specific code branches handle iOS/Android/Web differences throughout (keyboard handling, tab bar styling, haptics guard)
 
 ### State & Context Design
 
 - **AppProvider** (`lib/app-context.tsx`): Central context managing auth state, properties, saved properties, chat threads, notifications, and all Firebase CRUD operations
-- **ThemeProvider** (`lib/theme-context.tsx`): Dark/light mode toggle, persisted via AsyncStorage
+- **ThemeProvider** (`lib/theme-context.tsx`): Dark/light mode toggle with full color palette (`useColors()` hook), persisted via AsyncStorage. Provides `isDark`, `toggleTheme`, and `colors` (ThemeColors object)
 - **LanguageProvider** (`lib/language-context.tsx`): Bengali/English toggle with inline translation dictionary, persisted via AsyncStorage
 
 ### Backend Architecture

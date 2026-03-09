@@ -6,13 +6,16 @@ import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useApp } from '@/lib/app-context';
 import { db } from '@/lib/firebase';
-import Colors from '@/constants/colors';
-
-const ADMIN_ACCENT = '#6C5CE7';
+import { useColors, useTheme } from '@/lib/theme-context';
 
 export default function AdminSettings() {
   const insets = useSafeAreaInsets();
   const { logout, user } = useApp();
+  const colors = useColors();
+  const { isDark } = useTheme();
+
+  const ADMIN_ACCENT = isDark ? '#A78BFA' : '#6C5CE7';
+  const ADMIN_ACCENT_BG = isDark ? '#1E1635' : '#F0EEFF';
 
   const handleLogout = () => {
     Alert.alert(
@@ -135,46 +138,46 @@ export default function AdminSettings() {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
-      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
-        <Text style={styles.title}>সেটিংস</Text>
-        <Text style={styles.subtitle}>অ্যাডমিন কনফিগারেশন</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={{ paddingBottom: 100 }}>
+      <View style={[styles.header, { backgroundColor: colors.surface, paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>সেটিংস</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>অ্যাডমিন কনফিগারেশন</Text>
       </View>
 
-      <View style={styles.adminCard}>
-        <View style={styles.adminAvatar}>
+      <View style={[styles.adminCard, { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
+        <View style={[styles.adminAvatar, { backgroundColor: ADMIN_ACCENT }]}>
           <Ionicons name="shield-checkmark" size={28} color="#FFFFFF" />
         </View>
         <View style={styles.adminInfo}>
-          <Text style={styles.adminName}>{user?.name || 'Super Admin'}</Text>
-          <Text style={styles.adminEmail}>{user?.email || 'admin@bashvara.com'}</Text>
+          <Text style={[styles.adminName, { color: colors.textPrimary }]}>{user?.name || 'Super Admin'}</Text>
+          <Text style={[styles.adminEmail, { color: colors.textSecondary }]}>{user?.email || 'admin@bashvara.com'}</Text>
         </View>
-        <View style={styles.adminRoleBadge}>
-          <Text style={styles.adminRoleText}>অ্যাডমিন</Text>
+        <View style={[styles.adminRoleBadge, { backgroundColor: ADMIN_ACCENT_BG }]}>
+          <Text style={[styles.adminRoleText, { color: ADMIN_ACCENT }]}>অ্যাডমিন</Text>
         </View>
       </View>
 
       {settingsGroups.map((group, groupIndex) => (
         <View key={groupIndex} style={styles.group}>
-          <Text style={styles.groupTitle}>{group.title}</Text>
-          <View style={styles.groupCard}>
+          <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>{group.title}</Text>
+          <View style={[styles.groupCard, { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
             {group.items.map((item, itemIndex) => (
               <Pressable
                 key={itemIndex}
                 style={[
                   styles.settingItem,
-                  itemIndex < group.items.length - 1 && styles.settingItemBorder,
+                  itemIndex < group.items.length - 1 && [styles.settingItemBorder, { borderBottomColor: colors.borderLight }],
                 ]}
                 onPress={() => settingsHandlers[item.label]?.()}
               >
-                <View style={styles.settingIcon}>
+                <View style={[styles.settingIcon, { backgroundColor: ADMIN_ACCENT_BG }]}>
                   <Ionicons name={item.icon} size={22} color={ADMIN_ACCENT} />
                 </View>
                 <View style={styles.settingInfo}>
-                  <Text style={styles.settingLabel}>{item.label}</Text>
-                  <Text style={styles.settingSubtitle}>{item.subtitle}</Text>
+                  <Text style={[styles.settingLabel, { color: colors.textPrimary }]}>{item.label}</Text>
+                  <Text style={[styles.settingSubtitle, { color: colors.textMuted }]}>{item.subtitle}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
               </Pressable>
             ))}
           </View>
@@ -182,9 +185,9 @@ export default function AdminSettings() {
       ))}
 
       <View style={styles.logoutSection}>
-        <Pressable style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={22} color={Colors.danger} />
-          <Text style={styles.logoutText}>লগআউট করুন</Text>
+        <Pressable style={[styles.logoutBtn, { backgroundColor: colors.dangerLight, borderColor: colors.danger + '30' }]} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={22} color={colors.danger} />
+          <Text style={[styles.logoutText, { color: colors.danger }]}>লগআউট করুন</Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -192,67 +195,60 @@ export default function AdminSettings() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingBottom: 16 },
-  title: { fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  subtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },
+  container: { flex: 1 },
+  header: { paddingHorizontal: 20, paddingBottom: 16 },
+  title: { fontSize: 22, fontFamily: 'Inter_700Bold' },
+  subtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
   adminCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
     marginTop: 16,
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
   },
   adminAvatar: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: ADMIN_ACCENT,
     alignItems: 'center',
     justifyContent: 'center',
   },
   adminInfo: { flex: 1, marginLeft: 14 },
-  adminName: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
-  adminEmail: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },
+  adminName: { fontSize: 16, fontFamily: 'Inter_600SemiBold' },
+  adminEmail: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
   adminRoleBadge: {
-    backgroundColor: '#F0EEFF',
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 8,
   },
-  adminRoleText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: ADMIN_ACCENT },
+  adminRoleText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
   group: { marginTop: 24, paddingHorizontal: 20 },
-  groupTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary, marginBottom: 8, textTransform: 'uppercase' as const },
-  groupCard: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: Colors.borderLight, overflow: 'hidden' },
+  groupTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', marginBottom: 8, textTransform: 'uppercase' as const },
+  groupCard: { borderRadius: 14, borderWidth: 1, overflow: 'hidden' as const },
   settingItem: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-  settingItemBorder: { borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  settingItemBorder: { borderBottomWidth: 1 },
   settingIcon: {
     width: 38,
     height: 38,
     borderRadius: 10,
-    backgroundColor: '#F0EEFF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   settingInfo: { flex: 1 },
-  settingLabel: { fontSize: 15, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
-  settingSubtitle: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted, marginTop: 1 },
+  settingLabel: { fontSize: 15, fontFamily: 'Inter_500Medium' },
+  settingSubtitle: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 1 },
   logoutSection: { paddingHorizontal: 20, marginTop: 32 },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: Colors.dangerLight,
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: Colors.danger + '30',
   },
-  logoutText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.danger },
+  logoutText: { fontSize: 16, fontFamily: 'Inter_600SemiBold' },
 });

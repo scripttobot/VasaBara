@@ -4,23 +4,24 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/lib/app-context';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
+import { ThemeColors } from '@/constants/colors';
 import { AppNotification } from '@/constants/types';
 
-function getNotificationIcon(type: AppNotification['type']): { name: keyof typeof Ionicons.glyphMap; color: string; bg: string } {
+function getNotificationIcon(type: AppNotification['type'], colors: ThemeColors): { name: keyof typeof Ionicons.glyphMap; color: string; bg: string } {
   switch (type) {
     case 'message':
-      return { name: 'chatbubble', color: Colors.primary, bg: Colors.primaryLight };
+      return { name: 'chatbubble', color: colors.primary, bg: colors.primaryLight };
     case 'new_property':
-      return { name: 'business', color: Colors.secondary, bg: Colors.secondaryLight };
+      return { name: 'business', color: colors.secondary, bg: colors.secondaryLight };
     case 'kyc_approved':
-      return { name: 'checkmark-circle', color: Colors.success, bg: Colors.successLight };
+      return { name: 'checkmark-circle', color: colors.success, bg: colors.successLight };
     case 'kyc_declined':
-      return { name: 'close-circle', color: Colors.danger, bg: Colors.dangerLight };
+      return { name: 'close-circle', color: colors.danger, bg: colors.dangerLight };
     case 'system':
       return { name: 'information-circle', color: '#8B5CF6', bg: '#F3E8FF' };
     default:
-      return { name: 'notifications', color: Colors.textSecondary, bg: Colors.inputBg };
+      return { name: 'notifications', color: colors.textSecondary, bg: colors.inputBg };
   }
 }
 
@@ -39,14 +40,14 @@ function formatTimeAgo(dateStr: string): string {
   return date.toLocaleDateString('bn-BD');
 }
 
-function NotificationItem({ item, onPress }: { item: AppNotification; onPress: () => void }) {
-  const icon = getNotificationIcon(item.type);
+function NotificationItem({ item, onPress, colors }: { item: AppNotification; onPress: () => void; colors: ThemeColors }) {
+  const icon = getNotificationIcon(item.type, colors);
 
   return (
     <Pressable
       style={({ pressed }) => [
-        styles.notifItem,
-        !item.read && styles.notifItemUnread,
+        { flexDirection: 'row' as const, alignItems: 'flex-start' as const, paddingHorizontal: 20, paddingVertical: 16, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.borderLight, gap: 14 },
+        !item.read && { backgroundColor: colors.primaryLight },
         pressed && { opacity: 0.8 },
       ]}
       onPress={onPress}
@@ -55,21 +56,22 @@ function NotificationItem({ item, onPress }: { item: AppNotification; onPress: (
         <Ionicons name={icon.name} size={20} color={icon.color} />
       </View>
       <View style={styles.notifContent}>
-        <Text style={[styles.notifTitle, !item.read && styles.notifTitleUnread]} numberOfLines={1}>
+        <Text style={[styles.notifTitle, { color: colors.textPrimary }, !item.read && styles.notifTitleUnread]} numberOfLines={1}>
           {item.title}
         </Text>
-        <Text style={styles.notifBody} numberOfLines={2}>
+        <Text style={[styles.notifBody, { color: colors.textSecondary }]} numberOfLines={2}>
           {item.body}
         </Text>
-        <Text style={styles.notifTime}>{formatTimeAgo(item.createdAt)}</Text>
+        <Text style={[styles.notifTime, { color: colors.textMuted }]}>{formatTimeAgo(item.createdAt)}</Text>
       </View>
-      {!item.read && <View style={styles.unreadDot} />}
+      {!item.read && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
     </Pressable>
   );
 }
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useColors();
   const { notifications, markNotificationRead, markAllNotificationsRead, unreadNotificationCount } = useApp();
   const [prefs, setPrefs] = React.useState<Record<string, boolean>>({});
 
@@ -116,29 +118,29 @@ export default function NotificationsScreen() {
   };
 
   return (
-      <View style={[styles.container, { paddingTop: Platform.OS === 'web' ? 67 + insets.top : insets.top }]}>
-        <View style={styles.header}>
+      <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Platform.OS === 'web' ? 67 + insets.top : insets.top }]}>
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.borderLight }]}>
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </Pressable>
-          <Text style={styles.headerTitle}>নোটিফিকেশন</Text>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>নোটিফিকেশন</Text>
           {unreadNotificationCount > 0 ? (
             <Pressable onPress={markAllNotificationsRead} style={styles.markAllBtn}>
-              <Ionicons name="checkmark-done" size={22} color={Colors.primary} />
+              <Ionicons name="checkmark-done" size={22} color={colors.primary} />
             </Pressable>
           ) : <View style={{ width: 40 }} />}
         </View>
         {unreadNotificationCount > 0 && (
-          <Pressable style={styles.markAllBar} onPress={markAllNotificationsRead}>
-            <Ionicons name="checkmark-done-outline" size={18} color={Colors.primary} />
-            <Text style={styles.markAllText}>সব পড়া হয়েছে</Text>
+          <Pressable style={[styles.markAllBar, { backgroundColor: colors.primaryLight, borderBottomColor: colors.border }]} onPress={markAllNotificationsRead}>
+            <Ionicons name="checkmark-done-outline" size={18} color={colors.primary} />
+            <Text style={[styles.markAllText, { color: colors.primary }]}>সব পড়া হয়েছে</Text>
           </Pressable>
         )}
         <FlatList
           data={filteredNotifications}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <NotificationItem item={item} onPress={() => handleNotificationPress(item)} />
+            <NotificationItem item={item} onPress={() => handleNotificationPress(item)} colors={colors} />
           )}
           contentContainerStyle={[
             styles.listContent,
@@ -147,11 +149,11 @@ export default function NotificationsScreen() {
           ]}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <View style={styles.emptyIconWrap}>
-                <Ionicons name="notifications-off-outline" size={48} color={Colors.textMuted} />
+              <View style={[styles.emptyIconWrap, { backgroundColor: colors.inputBg }]}>
+                <Ionicons name="notifications-off-outline" size={48} color={colors.textMuted} />
               </View>
-              <Text style={styles.emptyTitle}>কোনো নোটিফিকেশন নেই</Text>
-              <Text style={styles.emptySubtext}>নতুন নোটিফিকেশন এলে এখানে দেখাবে</Text>
+              <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>কোনো নোটিফিকেশন নেই</Text>
+              <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>নতুন নোটিফিকেশন এলে এখানে দেখাবে</Text>
             </View>
           }
           showsVerticalScrollIndicator={false}
@@ -161,10 +163,10 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1 },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold' },
   listContent: { paddingTop: 8 },
   emptyContainer: { flex: 1, justifyContent: 'center' },
   markAllBtn: { marginRight: 8, padding: 6 },
@@ -174,22 +176,9 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: Colors.primaryLight,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
-  markAllText: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.primary },
-  notifItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-    gap: 14,
-  },
-  notifItemUnread: { backgroundColor: '#F0FAF8' },
+  markAllText: { fontSize: 14, fontFamily: 'Inter_500Medium' },
   notifIconWrap: {
     width: 44,
     height: 44,
@@ -199,15 +188,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   notifContent: { flex: 1, gap: 3 },
-  notifTitle: { fontSize: 15, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
+  notifTitle: { fontSize: 15, fontFamily: 'Inter_500Medium' },
   notifTitleUnread: { fontFamily: 'Inter_600SemiBold' },
-  notifBody: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 18 },
-  notifTime: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textMuted, marginTop: 2 },
+  notifBody: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 18 },
+  notifTime: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: 2 },
   unreadDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Colors.primary,
     marginTop: 6,
   },
   emptyState: { alignItems: 'center', gap: 8, paddingHorizontal: 40 },
@@ -215,11 +203,10 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
-  emptyTitle: { fontSize: 17, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
-  emptySubtext: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, textAlign: 'center' },
+  emptyTitle: { fontSize: 17, fontFamily: 'Inter_600SemiBold' },
+  emptySubtext: { fontSize: 14, fontFamily: 'Inter_400Regular', textAlign: 'center' },
 });

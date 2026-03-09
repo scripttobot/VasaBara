@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Platform, Pressable } from 'react-n
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
 
 const sections = [
   {
@@ -40,45 +40,46 @@ const sections = [
 
 export default function TermsScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useColors();
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12), backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>শর্তাবলী</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>শর্তাবলী</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={styles.intro}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="document-text" size={32} color={Colors.textSecondary} />
+          <View style={[styles.iconCircle, { backgroundColor: colors.inputBg }]}>
+            <Ionicons name="document-text" size={32} color={colors.textSecondary} />
           </View>
-          <Text style={styles.introText}>
+          <Text style={[styles.introText, { color: colors.textSecondary }]}>
             BashVara ব্যবহার করার আগে অনুগ্রহ করে নিম্নলিখিত শর্তাবলী মনোযোগ দিয়ে পড়ুন।
           </Text>
-          <Text style={styles.lastUpdated}>সর্বশেষ আপডেট: মার্চ ২০২৬</Text>
+          <Text style={[styles.lastUpdated, { color: colors.textMuted }]}>সর্বশেষ আপডেট: মার্চ ২০২৬</Text>
         </View>
 
         {sections.map((section, index) => (
-          <View key={index} style={styles.section}>
+          <View key={index} style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.sectionHeader}>
-              <View style={styles.numberBadge}>
+              <View style={[styles.numberBadge, { backgroundColor: colors.primary }]}>
                 <Text style={styles.numberText}>{index + 1}</Text>
               </View>
               <View style={styles.sectionTitleRow}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{section.title}</Text>
               </View>
             </View>
-            <Text style={styles.sectionContent}>{section.content}</Text>
+            <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>{section.content}</Text>
           </View>
         ))}
 
-        <View style={styles.acceptBox}>
-          <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
-          <Text style={styles.acceptText}>
+        <View style={[styles.acceptBox, { backgroundColor: colors.successLight }]}>
+          <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+          <Text style={[styles.acceptText, { color: colors.success }]}>
             অ্যাপ ব্যবহার অব্যাহত রাখলে আপনি উপরের শর্তাবলী মেনে নিচ্ছেন বলে গণ্য হবে।
           </Text>
         </View>
@@ -88,46 +89,46 @@ export default function TermsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingBottom: 14, backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1, borderBottomColor: Colors.border,
+    paddingHorizontal: 20, paddingBottom: 14,
+    borderBottomWidth: 1,
   },
-  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold' },
   intro: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 28, paddingBottom: 8 },
   iconCircle: {
-    width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.inputBg,
+    width: 64, height: 64, borderRadius: 32,
     alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
   introText: {
-    fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary,
+    fontSize: 14, fontFamily: 'Inter_400Regular',
     textAlign: 'center', lineHeight: 22,
   },
   lastUpdated: {
-    fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textMuted, marginTop: 8,
+    fontSize: 12, fontFamily: 'Inter_500Medium', marginTop: 8,
   },
   section: {
-    backgroundColor: '#FFFFFF', marginHorizontal: 20, marginTop: 14,
-    borderRadius: 14, borderWidth: 1, borderColor: Colors.border, padding: 18,
+    marginHorizontal: 20, marginTop: 14,
+    borderRadius: 14, borderWidth: 1, padding: 18,
   },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   numberBadge: {
-    width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.primary,
+    width: 28, height: 28, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center',
   },
   numberText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: '#FFFFFF' },
   sectionTitleRow: { flex: 1 },
-  sectionTitle: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  sectionTitle: { fontSize: 16, fontFamily: 'Inter_600SemiBold' },
   sectionContent: {
-    fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 22,
+    fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 22,
   },
   acceptBox: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: Colors.successLight, marginHorizontal: 20, marginTop: 20,
+    marginHorizontal: 20, marginTop: 20,
     borderRadius: 14, padding: 16,
   },
   acceptText: {
-    fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.success, flex: 1, lineHeight: 20,
+    fontSize: 13, fontFamily: 'Inter_500Medium', flex: 1, lineHeight: 20,
   },
 });

@@ -4,12 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { useApp } from '@/lib/app-context';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
 import { PROPERTY_TYPES, FURNISHING_OPTIONS, GENDER_PREFERENCES, DIVISIONS } from '@/constants/locations';
 import * as Haptics from 'expo-haptics';
 
 export default function AddPropertyScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useColors();
   const { user, addProperty } = useApp();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -109,41 +110,41 @@ export default function AddPropertyScreen() {
   };
 
   const CounterInput = ({ label, value, onChange, min = 0, max = 50 }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number }) => (
-    <View style={s.counterBox}>
-      <Text style={s.counterLabel}>{label}</Text>
+    <View style={[s.counterBox, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
+      <Text style={[s.counterLabel, { color: colors.textSecondary }]}>{label}</Text>
       <View style={s.counterRow}>
-        <Pressable style={s.counterBtn} onPress={() => value > min && onChange(value - 1)} disabled={value <= min}>
-          <Ionicons name="remove" size={18} color={value <= min ? Colors.textMuted : Colors.primary} />
+        <Pressable style={[s.counterBtn, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => value > min && onChange(value - 1)} disabled={value <= min}>
+          <Ionicons name="remove" size={18} color={value <= min ? colors.textMuted : colors.primary} />
         </Pressable>
-        <Text style={s.counterValue}>{value}</Text>
-        <Pressable style={s.counterBtn} onPress={() => value < max && onChange(value + 1)} disabled={value >= max}>
-          <Ionicons name="add" size={18} color={value >= max ? Colors.textMuted : Colors.primary} />
+        <Text style={[s.counterValue, { color: colors.textPrimary }]}>{value}</Text>
+        <Pressable style={[s.counterBtn, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => value < max && onChange(value + 1)} disabled={value >= max}>
+          <Ionicons name="add" size={18} color={value >= max ? colors.textMuted : colors.primary} />
         </Pressable>
       </View>
     </View>
   );
 
   const ToggleItem = ({ label, icon, value, onChange }: { label: string; icon: string; value: boolean; onChange: (v: boolean) => void }) => (
-    <Pressable style={[s.toggleItem, value && s.toggleItemActive]} onPress={() => onChange(!value)}>
-      <Ionicons name={icon as any} size={20} color={value ? Colors.primary : Colors.textMuted} />
-      <Text style={[s.toggleLabel, value && s.toggleLabelActive]}>{label}</Text>
-      {value && <Ionicons name="checkmark-circle" size={18} color={Colors.primary} />}
+    <Pressable style={[s.toggleItem, { backgroundColor: value ? colors.primaryLight : colors.inputBg, borderColor: value ? colors.primary : colors.border }]} onPress={() => onChange(!value)}>
+      <Ionicons name={icon as any} size={20} color={value ? colors.primary : colors.textMuted} />
+      <Text style={[s.toggleLabel, { color: value ? colors.primary : colors.textSecondary }]}>{label}</Text>
+      {value && <Ionicons name="checkmark-circle" size={18} color={colors.primary} />}
     </Pressable>
   );
 
   return (
-    <View style={s.container}>
-      <View style={[s.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 8) }]}>
+    <View style={[s.container, { backgroundColor: colors.background }]}>
+      <View style={[s.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 8), backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={s.headerTop}>
-          <Text style={s.headerTitle}>প্রপার্টি যোগ করুন</Text>
-          <Text style={s.stepText}>{step}/4</Text>
+          <Text style={[s.headerTitle, { color: colors.textPrimary }]}>প্রপার্টি যোগ করুন</Text>
+          <Text style={[s.stepText, { color: colors.primary }]}>{step}/4</Text>
         </View>
-        <View style={s.progressBar}>
-          <View style={[s.progressFill, { width: `${stepProgress}%` }]} />
+        <View style={[s.progressBar, { backgroundColor: colors.borderLight }]}>
+          <View style={[s.progressFill, { width: `${stepProgress}%`, backgroundColor: colors.primary }]} />
         </View>
         <View style={s.stepLabelsRow}>
           {['তথ্য', 'বিবরণ', 'ছবি', 'মূল্য'].map((label, i) => (
-            <Text key={i} style={[s.stepLabelItem, step > i && s.stepLabelDone, step === i + 1 && s.stepLabelCurrent]}>{label}</Text>
+            <Text key={i} style={[s.stepLabelItem, { color: colors.textMuted }, step > i && { color: colors.primary, fontFamily: 'Inter_500Medium' }, step === i + 1 && { color: colors.primary, fontFamily: 'Inter_600SemiBold' }]}>{label}</Text>
           ))}
         </View>
       </View>
@@ -156,33 +157,33 @@ export default function AddPropertyScreen() {
         {step === 1 && (
           <View style={s.form}>
             <View style={s.sectionHeader}>
-              <Ionicons name="home-outline" size={20} color={Colors.primary} />
-              <Text style={s.sectionTitle}>বেসিক তথ্য</Text>
+              <Ionicons name="home-outline" size={20} color={colors.primary} />
+              <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>বেসিক তথ্য</Text>
             </View>
 
             <View style={s.inputGroup}>
-              <Text style={s.label}>প্রপার্টি টাইটেল <Text style={s.required}>*</Text></Text>
-              <TextInput style={s.textInput} placeholder="যেমন: ৩ বেডরুম ফ্ল্যাট - উত্তরা" placeholderTextColor={Colors.textMuted} value={title} onChangeText={setTitle} />
+              <Text style={[s.label, { color: colors.textPrimary }]}>প্রপার্টি টাইটেল <Text style={{ color: colors.danger }}>*</Text></Text>
+              <TextInput style={[s.textInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.textPrimary }]} placeholder="যেমন: ৩ বেডরুম ফ্ল্যাট - উত্তরা" placeholderTextColor={colors.textMuted} value={title} onChangeText={setTitle} />
             </View>
 
             <View style={s.inputGroup}>
-              <Text style={s.label}>প্রপার্টি ধরন</Text>
+              <Text style={[s.label, { color: colors.textPrimary }]}>প্রপার্টি ধরন</Text>
               <View style={s.typeGrid}>
                 {PROPERTY_TYPES.map(t => (
-                  <Pressable key={t.id} style={[s.typeCard, type === t.id && s.typeCardActive]} onPress={() => setType(t.id)}>
-                    <Ionicons name={t.icon as any} size={24} color={type === t.id ? Colors.primary : Colors.textMuted} />
-                    <Text style={[s.typeCardText, type === t.id && s.typeCardTextActive]}>{t.nameBn}</Text>
+                  <Pressable key={t.id} style={[s.typeCard, { backgroundColor: type === t.id ? colors.primaryLight : colors.inputBg, borderColor: type === t.id ? colors.primary : colors.border }]} onPress={() => setType(t.id)}>
+                    <Ionicons name={t.icon as any} size={24} color={type === t.id ? colors.primary : colors.textMuted} />
+                    <Text style={[s.typeCardText, { color: type === t.id ? colors.primary : colors.textSecondary, fontFamily: type === t.id ? 'Inter_600SemiBold' : 'Inter_500Medium' }]}>{t.nameBn}</Text>
                   </Pressable>
                 ))}
               </View>
             </View>
 
             <View style={s.inputGroup}>
-              <Text style={s.label}>বিভাগ <Text style={s.required}>*</Text></Text>
+              <Text style={[s.label, { color: colors.textPrimary }]}>বিভাগ <Text style={{ color: colors.danger }}>*</Text></Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.horizontalChips}>
                 {DIVISIONS.map(d => (
-                  <Pressable key={d.id} style={[s.chip, selectedDivision === d.id && s.chipActive]} onPress={() => { setSelectedDivision(d.id); setSelectedDistrict(''); setSelectedUpazila(''); }}>
-                    <Text style={[s.chipText, selectedDivision === d.id && s.chipTextActive]}>{d.nameBn}</Text>
+                  <Pressable key={d.id} style={[s.chip, { backgroundColor: selectedDivision === d.id ? colors.primaryLight : colors.inputBg, borderColor: selectedDivision === d.id ? colors.primary : colors.border }]} onPress={() => { setSelectedDivision(d.id); setSelectedDistrict(''); setSelectedUpazila(''); }}>
+                    <Text style={[s.chipText, { color: selectedDivision === d.id ? colors.primary : colors.textSecondary }]}>{d.nameBn}</Text>
                   </Pressable>
                 ))}
               </ScrollView>
@@ -190,11 +191,11 @@ export default function AddPropertyScreen() {
 
             {divisionData && (
               <View style={s.inputGroup}>
-                <Text style={s.label}>জেলা</Text>
+                <Text style={[s.label, { color: colors.textPrimary }]}>জেলা</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.horizontalChips}>
                   {divisionData.districts.map(d => (
-                    <Pressable key={d.id} style={[s.chip, selectedDistrict === d.id && s.chipActive]} onPress={() => { setSelectedDistrict(d.id); setSelectedUpazila(''); }}>
-                      <Text style={[s.chipText, selectedDistrict === d.id && s.chipTextActive]}>{d.nameBn}</Text>
+                    <Pressable key={d.id} style={[s.chip, { backgroundColor: selectedDistrict === d.id ? colors.primaryLight : colors.inputBg, borderColor: selectedDistrict === d.id ? colors.primary : colors.border }]} onPress={() => { setSelectedDistrict(d.id); setSelectedUpazila(''); }}>
+                      <Text style={[s.chipText, { color: selectedDistrict === d.id ? colors.primary : colors.textSecondary }]}>{d.nameBn}</Text>
                     </Pressable>
                   ))}
                 </ScrollView>
@@ -203,11 +204,11 @@ export default function AddPropertyScreen() {
 
             {districtData && districtData.upazilas.length > 0 && (
               <View style={s.inputGroup}>
-                <Text style={s.label}>এলাকা/উপজেলা</Text>
+                <Text style={[s.label, { color: colors.textPrimary }]}>এলাকা/উপজেলা</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.horizontalChips}>
                   {districtData.upazilas.map(u => (
-                    <Pressable key={u.id} style={[s.chip, selectedUpazila === u.id && s.chipActive]} onPress={() => setSelectedUpazila(u.id)}>
-                      <Text style={[s.chipText, selectedUpazila === u.id && s.chipTextActive]}>{u.nameBn}</Text>
+                    <Pressable key={u.id} style={[s.chip, { backgroundColor: selectedUpazila === u.id ? colors.primaryLight : colors.inputBg, borderColor: selectedUpazila === u.id ? colors.primary : colors.border }]} onPress={() => setSelectedUpazila(u.id)}>
+                      <Text style={[s.chipText, { color: selectedUpazila === u.id ? colors.primary : colors.textSecondary }]}>{u.nameBn}</Text>
                     </Pressable>
                   ))}
                 </ScrollView>
@@ -215,13 +216,13 @@ export default function AddPropertyScreen() {
             )}
 
             <View style={s.inputGroup}>
-              <Text style={s.label}>বিস্তারিত ঠিকানা <Text style={s.required}>*</Text></Text>
-              <TextInput style={[s.textInput, s.textArea]} placeholder="রোড, ব্লক, সেক্টর, বাসা নম্বর" placeholderTextColor={Colors.textMuted} value={address} onChangeText={setAddress} multiline textAlignVertical="top" />
+              <Text style={[s.label, { color: colors.textPrimary }]}>বিস্তারিত ঠিকানা <Text style={{ color: colors.danger }}>*</Text></Text>
+              <TextInput style={[s.textInput, s.textArea, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.textPrimary }]} placeholder="রোড, ব্লক, সেক্টর, বাসা নম্বর" placeholderTextColor={colors.textMuted} value={address} onChangeText={setAddress} multiline textAlignVertical="top" />
             </View>
 
             <View style={s.inputGroup}>
-              <Text style={s.label}>বিবরণ</Text>
-              <TextInput style={[s.textInput, s.textAreaLarge]} placeholder="প্রপার্টি সম্পর্কে বিস্তারিত লিখুন..." placeholderTextColor={Colors.textMuted} value={description} onChangeText={setDescription} multiline textAlignVertical="top" />
+              <Text style={[s.label, { color: colors.textPrimary }]}>বিবরণ</Text>
+              <TextInput style={[s.textInput, s.textAreaLarge, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.textPrimary }]} placeholder="প্রপার্টি সম্পর্কে বিস্তারিত লিখুন..." placeholderTextColor={colors.textMuted} value={description} onChangeText={setDescription} multiline textAlignVertical="top" />
             </View>
           </View>
         )}
@@ -229,8 +230,8 @@ export default function AddPropertyScreen() {
         {step === 2 && (
           <View style={s.form}>
             <View style={s.sectionHeader}>
-              <Ionicons name="options-outline" size={20} color={Colors.primary} />
-              <Text style={s.sectionTitle}>বিস্তারিত তথ্য</Text>
+              <Ionicons name="options-outline" size={20} color={colors.primary} />
+              <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>বিস্তারিত তথ্য</Text>
             </View>
 
             <View style={s.counterGrid}>
@@ -241,35 +242,35 @@ export default function AddPropertyScreen() {
             </View>
 
             <View style={s.inputGroup}>
-              <Text style={s.label}>আয়তন (sqft)</Text>
-              <TextInput style={s.textInput} keyboardType="number-pad" value={area} onChangeText={setArea} placeholder="1000" placeholderTextColor={Colors.textMuted} />
+              <Text style={[s.label, { color: colors.textPrimary }]}>আয়তন (sqft)</Text>
+              <TextInput style={[s.textInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.textPrimary }]} keyboardType="number-pad" value={area} onChangeText={setArea} placeholder="1000" placeholderTextColor={colors.textMuted} />
             </View>
 
             <View style={s.inputGroup}>
-              <Text style={s.label}>ফার্নিশিং</Text>
+              <Text style={[s.label, { color: colors.textPrimary }]}>ফার্নিশিং</Text>
               <View style={s.chipRow}>
                 {FURNISHING_OPTIONS.map(f => (
-                  <Pressable key={f.id} style={[s.chip, furnishing === f.id && s.chipActive]} onPress={() => setFurnishing(f.id)}>
-                    <Ionicons name={furnishing === f.id ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={furnishing === f.id ? Colors.primary : Colors.textMuted} />
-                    <Text style={[s.chipText, furnishing === f.id && s.chipTextActive]}>{f.nameBn}</Text>
+                  <Pressable key={f.id} style={[s.chip, { backgroundColor: furnishing === f.id ? colors.primaryLight : colors.inputBg, borderColor: furnishing === f.id ? colors.primary : colors.border }]} onPress={() => setFurnishing(f.id)}>
+                    <Ionicons name={furnishing === f.id ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={furnishing === f.id ? colors.primary : colors.textMuted} />
+                    <Text style={[s.chipText, { color: furnishing === f.id ? colors.primary : colors.textSecondary }]}>{f.nameBn}</Text>
                   </Pressable>
                 ))}
               </View>
             </View>
 
             <View style={s.inputGroup}>
-              <Text style={s.label}>ভাড়াটিয়া প্রেফারেন্স</Text>
+              <Text style={[s.label, { color: colors.textPrimary }]}>ভাড়াটিয়া প্রেফারেন্স</Text>
               <View style={s.chipRow}>
                 {GENDER_PREFERENCES.map(g => (
-                  <Pressable key={g.id} style={[s.chip, genderPref === g.id && s.chipActive]} onPress={() => setGenderPref(g.id)}>
-                    <Text style={[s.chipText, genderPref === g.id && s.chipTextActive]}>{g.nameBn}</Text>
+                  <Pressable key={g.id} style={[s.chip, { backgroundColor: genderPref === g.id ? colors.primaryLight : colors.inputBg, borderColor: genderPref === g.id ? colors.primary : colors.border }]} onPress={() => setGenderPref(g.id)}>
+                    <Text style={[s.chipText, { color: genderPref === g.id ? colors.primary : colors.textSecondary }]}>{g.nameBn}</Text>
                   </Pressable>
                 ))}
               </View>
             </View>
 
             <View style={s.inputGroup}>
-              <Text style={s.label}>সুবিধাসমূহ</Text>
+              <Text style={[s.label, { color: colors.textPrimary }]}>সুবিধাসমূহ</Text>
               <View style={s.amenitiesGrid}>
                 <ToggleItem label="পার্কিং" icon="car-outline" value={parking} onChange={setParking} />
                 <ToggleItem label="গ্যাস" icon="flame-outline" value={gas} onChange={setGas} />
@@ -288,39 +289,39 @@ export default function AddPropertyScreen() {
         {step === 3 && (
           <View style={s.form}>
             <View style={s.sectionHeader}>
-              <Ionicons name="images-outline" size={20} color={Colors.primary} />
-              <Text style={s.sectionTitle}>ছবি ও ভিডিও</Text>
+              <Ionicons name="images-outline" size={20} color={colors.primary} />
+              <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>ছবি ও ভিডিও</Text>
             </View>
 
-            <Pressable style={s.uploadCard}>
-              <View style={s.uploadIconCircle}>
-                <Ionicons name="camera-outline" size={28} color={Colors.primary} />
+            <Pressable style={[s.uploadCard, { borderColor: colors.border, backgroundColor: colors.inputBg }]}>
+              <View style={[s.uploadIconCircle, { backgroundColor: colors.primaryLight }]}>
+                <Ionicons name="camera-outline" size={28} color={colors.primary} />
               </View>
-              <Text style={s.uploadTitle}>ছবি আপলোড করুন</Text>
-              <Text style={s.uploadSubtitle}>সর্বোচ্চ ১০টি ছবি • JPG, PNG</Text>
-              <View style={s.uploadButton}>
+              <Text style={[s.uploadTitle, { color: colors.textPrimary }]}>ছবি আপলোড করুন</Text>
+              <Text style={[s.uploadSubtitle, { color: colors.textMuted }]}>সর্বোচ্চ ১০টি ছবি • JPG, PNG</Text>
+              <View style={[s.uploadButton, { backgroundColor: colors.primary }]}>
                 <Ionicons name="add" size={18} color="#FFFFFF" />
                 <Text style={s.uploadButtonText}>ছবি যোগ করুন</Text>
               </View>
             </Pressable>
 
-            <Pressable style={s.uploadCard}>
-              <View style={[s.uploadIconCircle, { backgroundColor: '#FFF0EB' }]}>
-                <Ionicons name="videocam-outline" size={28} color={Colors.secondary} />
+            <Pressable style={[s.uploadCard, { borderColor: colors.border, backgroundColor: colors.inputBg }]}>
+              <View style={[s.uploadIconCircle, { backgroundColor: colors.secondaryLight }]}>
+                <Ionicons name="videocam-outline" size={28} color={colors.secondary} />
               </View>
-              <Text style={s.uploadTitle}>ভিডিও আপলোড</Text>
-              <Text style={s.uploadSubtitle}>ঐচ্ছিক • MP4 • সর্বোচ্চ ৫০MB</Text>
-              <View style={[s.uploadButton, { backgroundColor: Colors.secondary }]}>
+              <Text style={[s.uploadTitle, { color: colors.textPrimary }]}>ভিডিও আপলোড</Text>
+              <Text style={[s.uploadSubtitle, { color: colors.textMuted }]}>ঐচ্ছিক • MP4 • সর্বোচ্চ ৫০MB</Text>
+              <View style={[s.uploadButton, { backgroundColor: colors.secondary }]}>
                 <Ionicons name="add" size={18} color="#FFFFFF" />
                 <Text style={s.uploadButtonText}>ভিডিও যোগ করুন</Text>
               </View>
             </Pressable>
 
-            <View style={s.tipBox}>
-              <Ionicons name="bulb-outline" size={20} color={Colors.accent} />
+            <View style={[s.tipBox, { backgroundColor: colors.accentLight, borderColor: colors.accent + '50' }]}>
+              <Ionicons name="bulb-outline" size={20} color={colors.accent} />
               <View style={{ flex: 1 }}>
-                <Text style={s.tipTitle}>টিপস</Text>
-                <Text style={s.tipText}>ভালো মানের ছবি আপলোড করলে আপনার প্রপার্টি ৩গুণ দ্রুত ভাড়া হবে। বিভিন্ন কোণ থেকে ছবি তুলুন।</Text>
+                <Text style={[s.tipTitle, { color: colors.textPrimary }]}>টিপস</Text>
+                <Text style={[s.tipText, { color: colors.textSecondary }]}>ভালো মানের ছবি আপলোড করলে আপনার প্রপার্টি ৩গুণ দ্রুত ভাড়া হবে। বিভিন্ন কোণ থেকে ছবি তুলুন।</Text>
               </View>
             </View>
           </View>
@@ -329,65 +330,65 @@ export default function AddPropertyScreen() {
         {step === 4 && (
           <View style={s.form}>
             <View style={s.sectionHeader}>
-              <Ionicons name="cash-outline" size={20} color={Colors.primary} />
-              <Text style={s.sectionTitle}>মূল্য নির্ধারণ</Text>
+              <Ionicons name="cash-outline" size={20} color={colors.primary} />
+              <Text style={[s.sectionTitle, { color: colors.textPrimary }]}>মূল্য নির্ধারণ</Text>
             </View>
 
-            <View style={s.priceCard}>
+            <View style={[s.priceCard, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
               <View style={s.inputGroup}>
-                <Text style={s.label}>মাসিক ভাড়া (৳) <Text style={s.required}>*</Text></Text>
-                <View style={s.priceInputRow}>
-                  <Text style={s.priceCurrency}>৳</Text>
-                  <TextInput style={s.priceInput} placeholder="15,000" placeholderTextColor={Colors.textMuted} keyboardType="number-pad" value={rent} onChangeText={setRent} />
-                  <Text style={s.priceUnit}>/মাস</Text>
+                <Text style={[s.label, { color: colors.textPrimary }]}>মাসিক ভাড়া (৳) <Text style={{ color: colors.danger }}>*</Text></Text>
+                <View style={[s.priceInputRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Text style={[s.priceCurrency, { color: colors.primary }]}>৳</Text>
+                  <TextInput style={[s.priceInput, { color: colors.textPrimary }]} placeholder="15,000" placeholderTextColor={colors.textMuted} keyboardType="number-pad" value={rent} onChangeText={setRent} />
+                  <Text style={[s.priceUnit, { color: colors.textMuted }]}>/মাস</Text>
                 </View>
               </View>
 
               <View style={s.inputGroup}>
-                <Text style={s.label}>সিকিউরিটি ডিপোজিট (৳)</Text>
-                <View style={s.priceInputRow}>
-                  <Text style={s.priceCurrency}>৳</Text>
-                  <TextInput style={s.priceInput} placeholder="30,000" placeholderTextColor={Colors.textMuted} keyboardType="number-pad" value={deposit} onChangeText={setDeposit} />
+                <Text style={[s.label, { color: colors.textPrimary }]}>সিকিউরিটি ডিপোজিট (৳)</Text>
+                <View style={[s.priceInputRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Text style={[s.priceCurrency, { color: colors.primary }]}>৳</Text>
+                  <TextInput style={[s.priceInput, { color: colors.textPrimary }]} placeholder="30,000" placeholderTextColor={colors.textMuted} keyboardType="number-pad" value={deposit} onChangeText={setDeposit} />
                 </View>
               </View>
 
               <View style={s.inputGroup}>
-                <Text style={s.label}>সার্ভিস চার্জ (৳)</Text>
-                <View style={s.priceInputRow}>
-                  <Text style={s.priceCurrency}>৳</Text>
-                  <TextInput style={s.priceInput} placeholder="3,000" placeholderTextColor={Colors.textMuted} keyboardType="number-pad" value={serviceCharge} onChangeText={setServiceCharge} />
-                  <Text style={s.priceUnit}>/মাস</Text>
+                <Text style={[s.label, { color: colors.textPrimary }]}>সার্ভিস চার্জ (৳)</Text>
+                <View style={[s.priceInputRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Text style={[s.priceCurrency, { color: colors.primary }]}>৳</Text>
+                  <TextInput style={[s.priceInput, { color: colors.textPrimary }]} placeholder="3,000" placeholderTextColor={colors.textMuted} keyboardType="number-pad" value={serviceCharge} onChangeText={setServiceCharge} />
+                  <Text style={[s.priceUnit, { color: colors.textMuted }]}>/মাস</Text>
                 </View>
               </View>
 
               <View style={s.inputGroup}>
-                <Text style={s.label}>অগ্রিম (মাস)</Text>
-                <TextInput style={s.textInput} keyboardType="number-pad" value={advanceMonths} onChangeText={setAdvanceMonths} placeholder="2" placeholderTextColor={Colors.textMuted} />
+                <Text style={[s.label, { color: colors.textPrimary }]}>অগ্রিম (মাস)</Text>
+                <TextInput style={[s.textInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]} keyboardType="number-pad" value={advanceMonths} onChangeText={setAdvanceMonths} placeholder="2" placeholderTextColor={colors.textMuted} />
               </View>
 
               <View style={s.inputGroup}>
-                <Text style={s.label}>কবে থেকে পাওয়া যাবে</Text>
-                <TextInput style={s.textInput} value={availableFrom} onChangeText={setAvailableFrom} placeholder="যেমন: ১ এপ্রিল ২০২৬" placeholderTextColor={Colors.textMuted} />
+                <Text style={[s.label, { color: colors.textPrimary }]}>কবে থেকে পাওয়া যাবে</Text>
+                <TextInput style={[s.textInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]} value={availableFrom} onChangeText={setAvailableFrom} placeholder="যেমন: ১ এপ্রিল ২০২৬" placeholderTextColor={colors.textMuted} />
               </View>
             </View>
 
-            <View style={s.switchRow}>
+            <View style={[s.switchRow, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
               <View style={{ flex: 1 }}>
-                <Text style={s.switchLabel}>আলোচনাসাপেক্ষ</Text>
-                <Text style={s.switchDesc}>ভাড়া নিয়ে আলোচনা করতে রাজি</Text>
+                <Text style={[s.switchLabel, { color: colors.textPrimary }]}>আলোচনাসাপেক্ষ</Text>
+                <Text style={[s.switchDesc, { color: colors.textMuted }]}>ভাড়া নিয়ে আলোচনা করতে রাজি</Text>
               </View>
-              <Switch value={negotiable} onValueChange={setNegotiable} trackColor={{ false: '#E4E6EB', true: Colors.primaryLight }} thumbColor={negotiable ? Colors.primary : '#F4F5F7'} />
+              <Switch value={negotiable} onValueChange={setNegotiable} trackColor={{ false: colors.border, true: colors.primaryLight }} thumbColor={negotiable ? colors.primary : colors.inputBg} />
             </View>
 
             {rent ? (
-              <View style={s.summaryCard}>
-                <Text style={s.summaryTitle}>মূল্য সারাংশ</Text>
-                <View style={s.summaryRow}><Text style={s.summaryLabel}>মাসিক ভাড়া</Text><Text style={s.summaryValue}>৳{parseInt(rent).toLocaleString('bn-BD')}</Text></View>
-                {deposit ? <View style={s.summaryRow}><Text style={s.summaryLabel}>ডিপোজিট</Text><Text style={s.summaryValue}>৳{parseInt(deposit).toLocaleString('bn-BD')}</Text></View> : null}
-                {serviceCharge ? <View style={s.summaryRow}><Text style={s.summaryLabel}>সার্ভিস চার্জ</Text><Text style={s.summaryValue}>৳{parseInt(serviceCharge).toLocaleString('bn-BD')}/মাস</Text></View> : null}
-                <View style={[s.summaryRow, { borderTopWidth: 1, borderTopColor: Colors.borderLight, paddingTop: 10, marginTop: 6 }]}>
-                  <Text style={[s.summaryLabel, { fontFamily: 'Inter_600SemiBold' }]}>মোট প্রথম মাস</Text>
-                  <Text style={[s.summaryValue, { color: Colors.primary, fontFamily: 'Inter_700Bold' }]}>৳{((parseInt(rent) || 0) + (parseInt(deposit) || 0) + (parseInt(serviceCharge) || 0)).toLocaleString('bn-BD')}</Text>
+              <View style={[s.summaryCard, { backgroundColor: colors.primaryLight, borderColor: colors.primary + '30' }]}>
+                <Text style={[s.summaryTitle, { color: colors.primary }]}>মূল্য সারাংশ</Text>
+                <View style={s.summaryRow}><Text style={[s.summaryLabel, { color: colors.textSecondary }]}>মাসিক ভাড়া</Text><Text style={[s.summaryValue, { color: colors.textPrimary }]}>৳{parseInt(rent).toLocaleString('bn-BD')}</Text></View>
+                {deposit ? <View style={s.summaryRow}><Text style={[s.summaryLabel, { color: colors.textSecondary }]}>ডিপোজিট</Text><Text style={[s.summaryValue, { color: colors.textPrimary }]}>৳{parseInt(deposit).toLocaleString('bn-BD')}</Text></View> : null}
+                {serviceCharge ? <View style={s.summaryRow}><Text style={[s.summaryLabel, { color: colors.textSecondary }]}>সার্ভিস চার্জ</Text><Text style={[s.summaryValue, { color: colors.textPrimary }]}>৳{parseInt(serviceCharge).toLocaleString('bn-BD')}/মাস</Text></View> : null}
+                <View style={[s.summaryRow, { borderTopWidth: 1, borderTopColor: colors.borderLight, paddingTop: 10, marginTop: 6 }]}>
+                  <Text style={[s.summaryLabel, { fontFamily: 'Inter_600SemiBold', color: colors.textSecondary }]}>মোট প্রথম মাস</Text>
+                  <Text style={[s.summaryValue, { color: colors.primary, fontFamily: 'Inter_700Bold' }]}>৳{((parseInt(rent) || 0) + (parseInt(deposit) || 0) + (parseInt(serviceCharge) || 0)).toLocaleString('bn-BD')}</Text>
                 </View>
               </View>
             ) : null}
@@ -395,15 +396,15 @@ export default function AddPropertyScreen() {
         )}
       </KeyboardAwareScrollViewCompat>
 
-      <View style={[s.bottomBar, { paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 10) + 4 }]}>
+      <View style={[s.bottomBar, { paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 34 : 10) + 4, backgroundColor: colors.surface, borderTopColor: colors.border }]}>
         {step > 1 ? (
-          <Pressable style={s.prevBtn} onPress={() => setStep(step - 1)}>
-            <Ionicons name="chevron-back" size={20} color={Colors.textPrimary} />
-            <Text style={s.prevBtnText}>পিছনে</Text>
+          <Pressable style={[s.prevBtn, { backgroundColor: colors.inputBg }]} onPress={() => setStep(step - 1)}>
+            <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
+            <Text style={[s.prevBtnText, { color: colors.textPrimary }]}>পিছনে</Text>
           </Pressable>
         ) : <View style={{ width: 10 }} />}
         <Pressable
-          style={({ pressed }) => [s.nextBtn, pressed && { opacity: 0.9 }, submitting && { opacity: 0.6 }]}
+          style={({ pressed }) => [s.nextBtn, { backgroundColor: colors.primary }, pressed && { opacity: 0.9 }, submitting && { opacity: 0.6 }]}
           onPress={step === 4 ? handleSubmit : handleNext}
           disabled={submitting}
         >
@@ -416,35 +417,32 @@ export default function AddPropertyScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
 
   header: {
-    paddingHorizontal: 20, paddingBottom: 12, backgroundColor: '#FFFFFF',
-    borderBottomWidth: 0.5, borderBottomColor: '#E4E6EB',
+    paddingHorizontal: 20, paddingBottom: 12,
+    borderBottomWidth: 0.5,
   },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  headerTitle: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  stepText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
-  progressBar: { height: 4, backgroundColor: '#F0F2F5', borderRadius: 2, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 2 },
+  headerTitle: { fontSize: 20, fontFamily: 'Inter_700Bold' },
+  stepText: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  progressBar: { height: 4, borderRadius: 2, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 2 },
   stepLabelsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  stepLabelItem: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
-  stepLabelDone: { color: Colors.primary, fontFamily: 'Inter_500Medium' },
-  stepLabelCurrent: { color: Colors.primary, fontFamily: 'Inter_600SemiBold' },
+  stepLabelItem: { fontSize: 11, fontFamily: 'Inter_400Regular' },
 
   formContent: { padding: 20, paddingBottom: 120 },
   form: { gap: 20 },
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  sectionTitle: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  sectionTitle: { fontSize: 16, fontFamily: 'Inter_600SemiBold' },
 
   inputGroup: { gap: 6 },
-  label: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
-  required: { color: Colors.danger },
+  label: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   textInput: {
-    backgroundColor: '#F8F9FA', borderRadius: 12, paddingHorizontal: 16,
-    height: 48, fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textPrimary,
-    borderWidth: 1, borderColor: '#E8ECF0',
+    borderRadius: 12, paddingHorizontal: 16,
+    height: 48, fontSize: 15, fontFamily: 'Inter_400Regular',
+    borderWidth: 1,
   },
   textArea: { height: 80, paddingTop: 14 },
   textAreaLarge: { height: 100, paddingTop: 14 },
@@ -453,110 +451,103 @@ const s = StyleSheet.create({
   typeCard: {
     alignItems: 'center', justifyContent: 'center', gap: 6,
     paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14,
-    backgroundColor: '#F8F9FA', borderWidth: 1.5, borderColor: '#E8ECF0', minWidth: 90,
+    borderWidth: 1.5, minWidth: 90,
   },
-  typeCardActive: { backgroundColor: Colors.primaryLight, borderColor: Colors.primary },
-  typeCardText: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
-  typeCardTextActive: { color: Colors.primary, fontFamily: 'Inter_600SemiBold' },
+  typeCardText: { fontSize: 12 },
 
   horizontalChips: { gap: 8, paddingRight: 8 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 14, paddingVertical: 10, borderRadius: 22,
-    backgroundColor: '#F8F9FA', borderWidth: 1, borderColor: '#E8ECF0',
+    borderWidth: 1,
   },
-  chipActive: { backgroundColor: Colors.primaryLight, borderColor: Colors.primary },
-  chipText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
-  chipTextActive: { color: Colors.primary },
+  chipText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
 
   counterGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   counterBox: {
-    flex: 1, minWidth: '45%', backgroundColor: '#F8F9FA', borderRadius: 14,
-    padding: 14, borderWidth: 1, borderColor: '#E8ECF0', alignItems: 'center', gap: 8,
+    flex: 1, minWidth: '45%', borderRadius: 14,
+    padding: 14, borderWidth: 1, alignItems: 'center', gap: 8,
   },
-  counterLabel: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
+  counterLabel: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   counterRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   counterBtn: {
-    width: 34, height: 34, borderRadius: 17, backgroundColor: '#FFFFFF',
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#E8ECF0',
+    width: 34, height: 34, borderRadius: 17,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5,
   },
-  counterValue: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, minWidth: 24, textAlign: 'center' },
+  counterValue: { fontSize: 20, fontFamily: 'Inter_700Bold', minWidth: 24, textAlign: 'center' as const },
 
   amenitiesGrid: { gap: 8 },
   toggleItem: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12,
-    backgroundColor: '#F8F9FA', borderWidth: 1, borderColor: '#E8ECF0',
+    borderWidth: 1,
   },
-  toggleItemActive: { backgroundColor: Colors.primaryLight, borderColor: Colors.primary },
-  toggleLabel: { flex: 1, fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
-  toggleLabelActive: { color: Colors.primary },
+  toggleLabel: { flex: 1, fontSize: 14, fontFamily: 'Inter_500Medium' },
 
   uploadCard: {
     alignItems: 'center', paddingVertical: 28, paddingHorizontal: 20,
-    borderWidth: 2, borderColor: '#E8ECF0', borderStyle: 'dashed',
-    borderRadius: 16, gap: 10, backgroundColor: '#FAFBFC',
+    borderWidth: 2, borderStyle: 'dashed',
+    borderRadius: 16, gap: 10,
   },
   uploadIconCircle: {
-    width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.primaryLight,
+    width: 56, height: 56, borderRadius: 28,
     alignItems: 'center', justifyContent: 'center',
   },
-  uploadTitle: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
-  uploadSubtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  uploadTitle: { fontSize: 16, fontFamily: 'Inter_600SemiBold' },
+  uploadSubtitle: { fontSize: 13, fontFamily: 'Inter_400Regular' },
   uploadButton: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: Colors.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 22, marginTop: 4,
+    paddingHorizontal: 20, paddingVertical: 10, borderRadius: 22, marginTop: 4,
   },
   uploadButtonText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
 
   tipBox: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 12,
-    backgroundColor: '#FFF8E6', borderRadius: 12, padding: 14,
-    borderWidth: 1, borderColor: '#FFE0A3',
+    borderRadius: 12, padding: 14,
+    borderWidth: 1,
   },
-  tipTitle: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, marginBottom: 2 },
-  tipText: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 18 },
+  tipTitle: { fontSize: 13, fontFamily: 'Inter_600SemiBold', marginBottom: 2 },
+  tipText: { fontSize: 12, fontFamily: 'Inter_400Regular', lineHeight: 18 },
 
-  priceCard: { backgroundColor: '#F8F9FA', borderRadius: 16, padding: 16, gap: 16, borderWidth: 1, borderColor: '#E8ECF0' },
+  priceCard: { borderRadius: 16, padding: 16, gap: 16, borderWidth: 1 },
   priceInputRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
-    borderRadius: 12, borderWidth: 1, borderColor: '#E8ECF0', height: 48,
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 12, borderWidth: 1, height: 48,
   },
-  priceCurrency: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.primary, paddingHorizontal: 14 },
-  priceInput: { flex: 1, fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, height: 48 },
-  priceUnit: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textMuted, paddingRight: 14 },
+  priceCurrency: { fontSize: 18, fontFamily: 'Inter_700Bold', paddingHorizontal: 14 },
+  priceInput: { flex: 1, fontSize: 16, fontFamily: 'Inter_600SemiBold', height: 48 },
+  priceUnit: { fontSize: 13, fontFamily: 'Inter_400Regular', paddingRight: 14 },
 
   switchRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA',
-    borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#E8ECF0',
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 14, padding: 16, borderWidth: 1,
   },
-  switchLabel: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
-  switchDesc: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted, marginTop: 2 },
+  switchLabel: { fontSize: 15, fontFamily: 'Inter_600SemiBold' },
+  switchDesc: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
 
   summaryCard: {
-    backgroundColor: Colors.primaryLight, borderRadius: 14, padding: 16,
-    borderWidth: 1, borderColor: Colors.primary + '30',
+    borderRadius: 14, padding: 16,
+    borderWidth: 1,
   },
-  summaryTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary, marginBottom: 10 },
+  summaryTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', marginBottom: 10 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  summaryLabel: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  summaryValue: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  summaryLabel: { fontSize: 14, fontFamily: 'Inter_400Regular' },
+  summaryValue: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
 
   bottomBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingTop: 12,
-    backgroundColor: '#FFFFFF', borderTopWidth: 0.5, borderTopColor: '#E4E6EB',
+    borderTopWidth: 0.5,
   },
   prevBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
     paddingHorizontal: 18, height: 48, borderRadius: 24,
-    backgroundColor: '#F0F2F5',
   },
-  prevBtnText: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
+  prevBtnText: { fontSize: 14, fontFamily: 'Inter_500Medium' },
   nextBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: Colors.primary, height: 48, borderRadius: 24,
+    height: 48, borderRadius: 24,
   },
   nextBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
 });

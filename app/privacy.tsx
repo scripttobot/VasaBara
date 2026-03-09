@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Platform, Pressable } from 'react-n
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
 
 const sections = [
   {
@@ -40,43 +40,44 @@ const sections = [
 
 export default function PrivacyScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useColors();
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12), backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>গোপনীয়তা নীতি</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>গোপনীয়তা নীতি</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         <View style={styles.intro}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="shield-checkmark" size={32} color={Colors.primary} />
+          <View style={[styles.iconCircle, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name="shield-checkmark" size={32} color={colors.primary} />
           </View>
-          <Text style={styles.introText}>
+          <Text style={[styles.introText, { color: colors.textSecondary }]}>
             আপনার গোপনীয়তা আমাদের কাছে অত্যন্ত গুরুত্বপূর্ণ। নিচে আমাদের গোপনীয়তা নীতির বিস্তারিত দেওয়া হলো।
           </Text>
-          <Text style={styles.lastUpdated}>সর্বশেষ আপডেট: মার্চ ২০২৬</Text>
+          <Text style={[styles.lastUpdated, { color: colors.textMuted }]}>সর্বশেষ আপডেট: মার্চ ২০২৬</Text>
         </View>
 
         {sections.map((section, index) => (
-          <View key={index} style={styles.section}>
+          <View key={index} style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.sectionHeader}>
-              <View style={[styles.sectionIcon, { backgroundColor: Colors.primary + '12' }]}>
-                <Ionicons name={section.icon} size={20} color={Colors.primary} />
+              <View style={[styles.sectionIcon, { backgroundColor: colors.primary + '12' }]}>
+                <Ionicons name={section.icon} size={20} color={colors.primary} />
               </View>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{section.title}</Text>
             </View>
-            <Text style={styles.sectionContent}>{section.content}</Text>
+            <Text style={[styles.sectionContent, { color: colors.textSecondary }]}>{section.content}</Text>
           </View>
         ))}
 
-        <View style={styles.contactBox}>
-          <Text style={styles.contactTitle}>প্রশ্ন আছে?</Text>
-          <Text style={styles.contactText}>privacy@bashvara.com এ যোগাযোগ করুন</Text>
+        <View style={[styles.contactBox, { backgroundColor: colors.primaryLight }]}>
+          <Text style={[styles.contactTitle, { color: colors.primary }]}>প্রশ্ন আছে?</Text>
+          <Text style={[styles.contactText, { color: colors.primaryDark }]}>privacy@bashvara.com এ যোগাযোগ করুন</Text>
         </View>
       </ScrollView>
     </View>
@@ -84,39 +85,39 @@ export default function PrivacyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingBottom: 14, backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1, borderBottomColor: Colors.border,
+    paddingHorizontal: 20, paddingBottom: 14,
+    borderBottomWidth: 1,
   },
-  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold' },
   intro: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 28, paddingBottom: 8 },
   iconCircle: {
-    width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.primaryLight,
+    width: 64, height: 64, borderRadius: 32,
     alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
   introText: {
-    fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary,
+    fontSize: 14, fontFamily: 'Inter_400Regular',
     textAlign: 'center', lineHeight: 22,
   },
   lastUpdated: {
-    fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textMuted, marginTop: 8,
+    fontSize: 12, fontFamily: 'Inter_500Medium', marginTop: 8,
   },
   section: {
-    backgroundColor: '#FFFFFF', marginHorizontal: 20, marginTop: 14,
-    borderRadius: 14, borderWidth: 1, borderColor: Colors.border, padding: 18,
+    marginHorizontal: 20, marginTop: 14,
+    borderRadius: 14, borderWidth: 1, padding: 18,
   },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   sectionIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  sectionTitle: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  sectionTitle: { fontSize: 16, fontFamily: 'Inter_600SemiBold' },
   sectionContent: {
-    fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 22,
+    fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 22,
   },
   contactBox: {
-    backgroundColor: Colors.primaryLight, marginHorizontal: 20, marginTop: 20,
+    marginHorizontal: 20, marginTop: 20,
     borderRadius: 14, padding: 18, alignItems: 'center',
   },
-  contactTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
-  contactText: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.primaryDark, marginTop: 4 },
+  contactTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold' },
+  contactText: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 4 },
 });

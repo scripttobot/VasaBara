@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { useApp } from '@/lib/app-context';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
 import { DIVISIONS } from '@/constants/locations';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -12,6 +12,7 @@ import * as Haptics from 'expo-haptics';
 export default function EditProfileScreen() {
   const { user, userRole, updateUser } = useApp();
   const insets = useSafeAreaInsets();
+  const colors = useColors();
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [whatsapp, setWhatsapp] = useState(user?.whatsapp || '');
@@ -56,12 +57,12 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: Platform.OS === 'web' ? 67 + insets.top : insets.top }]}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Platform.OS === 'web' ? 67 + insets.top : insets.top }]}>
+      <View style={[styles.header, { borderBottomColor: colors.borderLight, backgroundColor: colors.surface }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>প্রোফাইল সম্পাদনা</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>প্রোফাইল সম্পাদনা</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -71,64 +72,64 @@ export default function EditProfileScreen() {
         bottomOffset={20}
       >
         <View style={styles.avatarSection}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={40} color={Colors.primary} />
+          <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name="person" size={40} color={colors.primary} />
           </View>
-          <Text style={styles.email}>{user?.email}</Text>
+          <Text style={[styles.email, { color: colors.textMuted }]}>{user?.email}</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>নাম *</Text>
-            <View style={styles.inputWrapper}>
-              <Ionicons name="person-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-              <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="আপনার নাম" placeholderTextColor={Colors.textMuted} />
+            <Text style={[styles.label, { color: colors.textPrimary }]}>নাম *</Text>
+            <View style={[styles.inputWrapper, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+              <Ionicons name="person-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+              <TextInput style={[styles.input, { color: colors.textPrimary }]} value={name} onChangeText={setName} placeholder="আপনার নাম" placeholderTextColor={colors.textMuted} />
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>মোবাইল নম্বর</Text>
-            <View style={styles.inputWrapper}>
-              <Ionicons name="call-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-              <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="01XXXXXXXXX" placeholderTextColor={Colors.textMuted} keyboardType="phone-pad" />
+            <Text style={[styles.label, { color: colors.textPrimary }]}>মোবাইল নম্বর</Text>
+            <View style={[styles.inputWrapper, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+              <Ionicons name="call-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+              <TextInput style={[styles.input, { color: colors.textPrimary }]} value={phone} onChangeText={setPhone} placeholder="01XXXXXXXXX" placeholderTextColor={colors.textMuted} keyboardType="phone-pad" />
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>হোয়াটসঅ্যাপ</Text>
-            <View style={styles.inputWrapper}>
-              <Ionicons name="logo-whatsapp" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-              <TextInput style={styles.input} value={whatsapp} onChangeText={setWhatsapp} placeholder="01XXXXXXXXX" placeholderTextColor={Colors.textMuted} keyboardType="phone-pad" />
+            <Text style={[styles.label, { color: colors.textPrimary }]}>হোয়াটসঅ্যাপ</Text>
+            <View style={[styles.inputWrapper, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+              <Ionicons name="logo-whatsapp" size={20} color={colors.textMuted} style={styles.inputIcon} />
+              <TextInput style={[styles.input, { color: colors.textPrimary }]} value={whatsapp} onChangeText={setWhatsapp} placeholder="01XXXXXXXXX" placeholderTextColor={colors.textMuted} keyboardType="phone-pad" />
             </View>
           </View>
 
           {userRole === 'client' && (
             <>
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>লিঙ্গ</Text>
+                <Text style={[styles.label, { color: colors.textPrimary }]}>লিঙ্গ</Text>
                 <View style={styles.chipRow}>
                   {genderOptions.map(opt => (
-                    <Pressable key={opt.id} style={[styles.chip, gender === opt.id && styles.chipActive]} onPress={() => setGender(opt.id)}>
-                      <Text style={[styles.chipText, gender === opt.id && styles.chipTextActive]}>{opt.label}</Text>
+                    <Pressable key={opt.id} style={[styles.chip, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }, gender === opt.id && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]} onPress={() => setGender(opt.id)}>
+                      <Text style={[styles.chipText, { color: colors.textSecondary }, gender === opt.id && { color: colors.primary }]}>{opt.label}</Text>
                     </Pressable>
                   ))}
                 </View>
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>পেশা</Text>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="briefcase-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-                  <TextInput style={styles.input} value={occupation} onChangeText={setOccupation} placeholder="আপনার পেশা" placeholderTextColor={Colors.textMuted} />
+                <Text style={[styles.label, { color: colors.textPrimary }]}>পেশা</Text>
+                <View style={[styles.inputWrapper, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+                  <Ionicons name="briefcase-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+                  <TextInput style={[styles.input, { color: colors.textPrimary }]} value={occupation} onChangeText={setOccupation} placeholder="আপনার পেশা" placeholderTextColor={colors.textMuted} />
                 </View>
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>বিভাগ</Text>
+                <Text style={[styles.label, { color: colors.textPrimary }]}>বিভাগ</Text>
                 <View style={styles.chipRow}>
                   {DIVISIONS.map(div => (
-                    <Pressable key={div.id} style={[styles.chip, division === div.id && styles.chipActive]} onPress={() => setDivision(div.id)}>
-                      <Text style={[styles.chipText, division === div.id && styles.chipTextActive]}>{div.nameBn}</Text>
+                    <Pressable key={div.id} style={[styles.chip, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }, division === div.id && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]} onPress={() => setDivision(div.id)}>
+                      <Text style={[styles.chipText, { color: colors.textSecondary }, division === div.id && { color: colors.primary }]}>{div.nameBn}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -138,16 +139,16 @@ export default function EditProfileScreen() {
 
           {userRole === 'owner' && (
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>NID নম্বর</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="id-card-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-                <TextInput style={styles.input} value={nidNumber} onChangeText={setNidNumber} placeholder="জাতীয় পরিচয়পত্র নম্বর" placeholderTextColor={Colors.textMuted} keyboardType="number-pad" />
+              <Text style={[styles.label, { color: colors.textPrimary }]}>NID নম্বর</Text>
+              <View style={[styles.inputWrapper, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+                <Ionicons name="id-card-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+                <TextInput style={[styles.input, { color: colors.textPrimary }]} value={nidNumber} onChangeText={setNidNumber} placeholder="জাতীয় পরিচয়পত্র নম্বর" placeholderTextColor={colors.textMuted} keyboardType="number-pad" />
               </View>
             </View>
           )}
 
           <Pressable
-            style={({ pressed }) => [styles.saveBtn, pressed && styles.saveBtnPressed, loading && styles.saveBtnDisabled]}
+            style={({ pressed }) => [styles.saveBtn, { backgroundColor: colors.primary }, pressed && styles.saveBtnPressed, loading && styles.saveBtnDisabled]}
             onPress={handleSave}
             disabled={loading}
           >
@@ -160,27 +161,25 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  headerTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold' },
   scroll: { flex: 1 },
   contentContainer: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 },
   avatarSection: { alignItems: 'center', marginBottom: 24 },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  email: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  avatar: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  email: { fontSize: 14, fontFamily: 'Inter_400Regular' },
   form: { gap: 16 },
   inputGroup: { gap: 6 },
-  label: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.inputBg, borderRadius: 12, paddingHorizontal: 14, height: 50, borderWidth: 1, borderColor: Colors.borderLight },
+  label: { fontSize: 13, fontFamily: 'Inter_500Medium' },
+  inputWrapper: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 14, height: 50, borderWidth: 1 },
   inputIcon: { marginRight: 10 },
-  input: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textPrimary },
+  input: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: Colors.inputBg, borderWidth: 1, borderColor: Colors.borderLight },
-  chipActive: { backgroundColor: Colors.primaryLight, borderColor: Colors.primary },
-  chipText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
-  chipTextActive: { color: Colors.primary },
-  saveBtn: { backgroundColor: Colors.primary, height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
+  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, borderWidth: 1 },
+  chipText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
+  saveBtn: { height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
   saveBtnPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
