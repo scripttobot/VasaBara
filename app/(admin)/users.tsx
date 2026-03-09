@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, Pressable, Platform, ActivityIndicato
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { User } from '@/constants/types';
 import Colors from '@/constants/colors';
 
@@ -56,6 +56,20 @@ export default function AdminUsers() {
   const toggleKYC = async (userId: string, currentStatus: boolean) => {
     try {
       await updateDoc(doc(db, 'users', userId), { kycVerified: !currentStatus });
+      const notifType = !currentStatus ? 'kyc_approved' : 'kyc_declined';
+      const notifTitle = !currentStatus ? 'KYC অনুমোদিত হয়েছে' : 'KYC প্রত্যাখ্যাত হয়েছে';
+      const notifBody = !currentStatus
+        ? 'আপনার KYC ভেরিফিকেশন সফলভাবে অনুমোদিত হয়েছে।'
+        : 'আপনার KYC ভেরিফিকেশন প্রত্যাখ্যাত হয়েছে। অনুগ্রহ করে পুনরায় জমা দিন।';
+      await addDoc(collection(db, 'notifications'), {
+        userId,
+        type: notifType,
+        title: notifTitle,
+        body: notifBody,
+        data: {},
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
     } catch (e) {
       console.error('Error updating KYC:', e);
     }

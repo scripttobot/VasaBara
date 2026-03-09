@@ -247,4 +247,21 @@ function setupErrorHandler(app: express.Application) {
       log(`express server serving on port ${port}`);
     },
   );
+
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+  const runCleanup = async () => {
+    try {
+      log("[Scheduler] Running 7-day message cleanup...");
+      const response = await fetch(`http://localhost:${port}/api/cleanup-old-messages`, {
+        method: "POST",
+      });
+      const result = await response.json();
+      log(`[Scheduler] Cleanup result: ${JSON.stringify(result)}`);
+    } catch (error) {
+      log(`[Scheduler] Cleanup failed: ${error}`);
+    }
+  };
+  setTimeout(runCleanup, 10000);
+  setInterval(runCleanup, TWENTY_FOUR_HOURS);
+  log("[Scheduler] 7-day message cleanup scheduled (startup + every 24 hours)");
 })();

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, Property, ChatThread, ChatMessage, SavedProperty, SearchFilters, UserRole } from '@/constants/types';
+import { User, Property, ChatThread, ChatMessage, SavedProperty, SearchFilters, UserRole, AppNotification } from '@/constants/types';
 import { Platform } from 'react-native';
 import { auth, db, googleProvider } from '@/lib/firebase';
 import {
@@ -54,6 +54,14 @@ interface AppContextValue {
   createChatThread: (recipientId: string, recipientName: string, propertyId: string, propertyTitle: string) => Promise<string | null>;
   sendMessage: (chatId: string, text: string) => Promise<boolean>;
   getChatMessages: (chatId: string) => ChatMessage[];
+  deleteMessage: (chatId: string, messageId: string, forEveryone: boolean) => Promise<boolean>;
+  editMessage: (chatId: string, messageId: string, newText: string) => Promise<boolean>;
+  deleteAllChatMessages: (chatId: string) => Promise<boolean>;
+  notifications: AppNotification[];
+  unreadNotificationCount: number;
+  markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
+  createNotification: (userId: string, type: AppNotification['type'], title: string, body: string, data?: Record<string, string>) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -80,6 +88,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [chatThreads, setChatThreads] = useState<ChatThread[]>([]);
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
   const [authLoading, setAuthLoading] = useState(true);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
@@ -188,6 +197,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
 
     return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || user.role === 'admin') return;
+    const q = query(
+      collection(db, 'notifications'),
+      where('userId', '==', user.id),
+      orderBy('createdAt', 'desc')
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      const notifs: AppNotification[] = [];
+      snap.forEach(d => notifs.push({ ...d.data(), id: d.id } as AppNotification));
+      setNotifications(notifs);
+    }, (err) => {
+      console.error('Error listening to notifications:', err);
+    });
+    return () => unsub();
   }, [user]);
 
   useEffect(() => {
@@ -429,7 +455,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
       };
 
-      await addDoc(collection(db, 'properties'), removeUndefined(newProperty));
+      const docRef = await addDoc(collection(db, 'properties'), removeUndefined(newProperty));
+
+      const clientUsers = await getDocs(query(collection(db, 'users'), where('role', '==', 'client')));
+      clientUsers.forEach(async (clientDoc) => {
+        try {
+          await addDoc(collection(db, 'notifications'), removeUndefined({
+            userId: clientDoc.id,
+            type: 'new_property',
+            title: 'নতুন প্রপার্টি যোগ হয়েছে',
+            body: `${propertyData.title || 'নতুন প্রপার্টি'} - ৳${propertyData.rent}/মাস`,
+            data: { propertyId: docRef.id },
+            read: false,
+            createdAt: new Date().toISOString(),
+          }));
+        } catch {}
+      });
     } catch (e) {
       console.error('Error adding property:', e);
     }
@@ -543,9 +584,71 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [chatMessages, setChatMessages] = useState<Record<string, ChatMessage[]>>({});
 
+  const createNotification = async (
+    userId: string,
+    type: AppNotification['type'],
+    title: string,
+    body: string,
+    data?: Record<string, string>
+  ) => {
+    try {
+      const notif = removeUndefined({
+        userId,
+        type,
+        title,
+        body,
+        data: data || {},
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
+      await addDoc(collection(db, 'notifications'), notif);
+    } catch (e) {
+      console.error('Error creating notification:', e);
+    }
+  };
+
+  const shouldShowNotification = useCallback(async (type: AppNotification['type']): Promise<boolean> => {
+    try {
+      const val = await AsyncStorage.getItem('@bashvara_notification_prefs');
+      if (!val) return true;
+      const prefs = JSON.parse(val);
+      const typeMap: Record<string, string> = {
+        'message': 'messages',
+        'new_property': 'newProperty',
+        'kyc_approved': 'kycStatus',
+        'kyc_declined': 'kycStatus',
+        'system': 'system',
+      };
+      const key = typeMap[type];
+      return key ? prefs[key] !== false : true;
+    } catch {
+      return true;
+    }
+  }, []);
+
+  const markNotificationRead = async (id: string) => {
+    try {
+      await updateDoc(doc(db, 'notifications', id), { read: true });
+    } catch (e) {
+      console.error('Error marking notification read:', e);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      const unread = notifications.filter(n => !n.read);
+      await Promise.all(unread.map(n => updateDoc(doc(db, 'notifications', n.id), { read: true })));
+    } catch (e) {
+      console.error('Error marking all notifications read:', e);
+    }
+  };
+
+  const unreadNotificationCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
+
   const sendMessage = async (chatId: string, text: string): Promise<boolean> => {
     if (!user || !text.trim()) return false;
     try {
+      const thread = chatThreads.find(t => t.id === chatId);
       const msg = {
         senderId: user.id,
         receiverId: '',
@@ -558,9 +661,69 @@ export function AppProvider({ children }: { children: ReactNode }) {
         lastMessage: text.trim(),
         lastMessageTime: new Date().toISOString(),
       });
+
+      if (thread) {
+        const receiverId = thread.participantIds.find(pid => pid !== user.id);
+        if (receiverId) {
+          createNotification(receiverId, 'message', `${user.name} থেকে নতুন মেসেজ`, text.trim().substring(0, 100), { chatId });
+        }
+      }
       return true;
     } catch (e) {
       console.error('Error sending message:', e);
+      return false;
+    }
+  };
+
+  const deleteMessage = async (chatId: string, messageId: string, forEveryone: boolean): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const msgRef = doc(db, 'chats', chatId, 'messages', messageId);
+      if (forEveryone) {
+        const msgDoc = await getDoc(msgRef);
+        if (msgDoc.data()?.senderId !== user.id) return false;
+        await updateDoc(msgRef, { deleted: true, text: '' });
+      } else {
+        const msgDoc = await getDoc(msgRef);
+        const existing = (msgDoc.data()?.deletedForUsers as string[]) || [];
+        await updateDoc(msgRef, { deletedForUsers: [...existing, user.id] });
+      }
+      return true;
+    } catch (e) {
+      console.error('Error deleting message:', e);
+      return false;
+    }
+  };
+
+  const editMessage = async (chatId: string, messageId: string, newText: string): Promise<boolean> => {
+    if (!user || !newText.trim()) return false;
+    try {
+      const msgRef = doc(db, 'chats', chatId, 'messages', messageId);
+      const msgDoc = await getDoc(msgRef);
+      if (msgDoc.data()?.senderId !== user.id) return false;
+      await updateDoc(msgRef, {
+        text: newText.trim(),
+        edited: true,
+        editedAt: new Date().toISOString(),
+      });
+      return true;
+    } catch (e) {
+      console.error('Error editing message:', e);
+      return false;
+    }
+  };
+
+  const deleteAllChatMessages = async (chatId: string): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const msgsSnap = await getDocs(collection(db, 'chats', chatId, 'messages'));
+      await Promise.all(msgsSnap.docs.map(d => {
+        const existing = (d.data()?.deletedForUsers as string[]) || [];
+        return updateDoc(d.ref, { deletedForUsers: [...existing, user.id] });
+      }));
+      return true;
+    } catch (e) {
+      console.error('Error deleting all messages:', e);
       return false;
     }
   };
@@ -600,8 +763,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       createChatThread,
       sendMessage,
       getChatMessages,
+      deleteMessage,
+      editMessage,
+      deleteAllChatMessages,
+      notifications,
+      unreadNotificationCount,
+      markNotificationRead,
+      markAllNotificationsRead,
+      createNotification,
     }),
-    [user, userRole, properties, savedProperties, chatThreads, searchFilters, authLoading, chatMessages]
+    [user, userRole, properties, savedProperties, chatThreads, searchFilters, authLoading, chatMessages, notifications, unreadNotificationCount]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

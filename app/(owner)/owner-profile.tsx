@@ -41,13 +41,13 @@ export default function OwnerProfileScreen() {
         Alert.alert('আর্নিং রিপোর্ট', 'রিপোর্ট ফিচার শীঘ্রই আসছে');
         break;
       case 'নোটিফিকেশন':
-        Alert.alert('নোটিফিকেশন', 'নোটিফিকেশন সেটিংস শীঘ্রই আসছে');
+        router.push('/notification-settings');
         break;
       case 'বিজনেস আওয়ারস':
         Alert.alert('বিজনেস আওয়ারস', 'বিজনেস আওয়ারস সেটিংস শীঘ্রই আসছে');
         break;
       case 'সাহায্য':
-        Alert.alert('সাহায্য', 'BashVara - বাংলাদেশের ভাড়া বাড়ি খোঁজার অ্যাপ।\n\nসমস্যা হলে support@bashvara.com এ যোগাযোগ করুন।');
+        router.push('/help-center');
         break;
     }
   };

@@ -1,21 +1,31 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Alert, Switch } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/lib/app-context';
+import { useTheme } from '@/lib/theme-context';
+import { useLanguage } from '@/lib/language-context';
 import Colors from '@/constants/colors';
 import * as Haptics from 'expo-haptics';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, savedProperties, logout } = useApp();
+  const { isDark, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
+
+  const bgColor = isDark ? '#121212' : Colors.background;
+  const cardBg = isDark ? '#1E1E1E' : '#FFFFFF';
+  const textColor = isDark ? '#E0E0E0' : Colors.textPrimary;
+  const textSecColor = isDark ? '#999999' : Colors.textSecondary;
+  const borderColor = isDark ? '#333333' : Colors.border;
 
   const handleLogout = () => {
-    Alert.alert('লগআউট', 'আপনি কি লগআউট করতে চান?', [
-      { text: 'না', style: 'cancel' },
+    Alert.alert(t('logout'), t('logoutConfirm'), [
+      { text: t('no'), style: 'cancel' },
       {
-        text: 'হ্যাঁ',
+        text: t('yes'),
         style: 'destructive',
         onPress: async () => {
           if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -28,88 +38,99 @@ export default function ProfileScreen() {
 
   const handleMenuPress = (label: string) => {
     switch (label) {
-      case 'প্রোফাইল সম্পাদনা':
+      case t('editProfile'):
         router.push('/edit-profile');
         break;
-      case 'নোটিফিকেশন সেটিংস':
-        Alert.alert('নোটিফিকেশন', 'নোটিফিকেশন সেটিংস শীঘ্রই আসছে');
+      case t('notificationSettings'):
+        router.push('/notification-settings');
         break;
-      case 'গোপনীয়তা':
-        Alert.alert('গোপনীয়তা', 'আপনার তথ্য সম্পূর্ণ সুরক্ষিত। আমরা Firebase Authentication ও Firestore ব্যবহার করি।');
+      case t('privacy'):
+        router.push('/privacy');
         break;
-      case 'ভাষা পরিবর্তন':
-        Alert.alert('ভাষা', 'বর্তমান ভাষা: বাংলা');
+      case t('changeLanguage'):
+        setLanguage(language === 'bn' ? 'en' : 'bn');
         break;
-      case 'ডার্ক মোড':
-        Alert.alert('ডার্ক মোড', 'এই ফিচার শীঘ্রই আসছে');
+      case t('helpCenter'):
+        router.push('/help-center');
         break;
-      case 'সাহায্য কেন্দ্র':
-        Alert.alert('সাহায্য', 'BashVara - বাংলাদেশের ভাড়া বাড়ি খোঁজার অ্যাপ।\n\nসমস্যা হলে support@bashvara.com এ যোগাযোগ করুন।');
+      case t('terms'):
+        router.push('/terms');
         break;
-      case 'শর্তাবলী':
-        Alert.alert('শর্তাবলী', 'BashVara ব্যবহার করে আপনি আমাদের শর্তাবলী মেনে নিচ্ছেন। ভাড়াটিয়া ও বাড়িওয়ালা উভয়ই তাদের দেওয়া তথ্যের জন্য দায়ী।');
-        break;
-      case 'অ্যাপ সম্পর্কে':
-        Alert.alert('অ্যাপ সম্পর্কে', 'BashVara (বাসভাড়া)\nসংস্করণ: 1.0.0\n\nবাংলাদেশের ভাড়া বাসা খোঁজার সেরা প্ল্যাটফর্ম');
+      case t('aboutApp'):
+        router.push('/about');
         break;
     }
   };
 
   const menuItems = [
-    { icon: 'person-outline' as const, label: 'প্রোফাইল সম্পাদনা', color: Colors.primary },
-    { icon: 'notifications-outline' as const, label: 'নোটিফিকেশন সেটিংস', color: Colors.secondary },
-    { icon: 'shield-checkmark-outline' as const, label: 'গোপনীয়তা', color: Colors.success },
-    { icon: 'language-outline' as const, label: 'ভাষা পরিবর্তন', color: '#8B5CF6' },
-    { icon: 'moon-outline' as const, label: 'ডার্ক মোড', color: '#6366F1' },
-    { icon: 'help-circle-outline' as const, label: 'সাহায্য কেন্দ্র', color: Colors.accent },
-    { icon: 'document-text-outline' as const, label: 'শর্তাবলী', color: Colors.textSecondary },
-    { icon: 'information-circle-outline' as const, label: 'অ্যাপ সম্পর্কে', color: Colors.textMuted },
+    { icon: 'person-outline' as const, label: t('editProfile'), color: Colors.primary },
+    { icon: 'notifications-outline' as const, label: t('notificationSettings'), color: Colors.secondary },
+    { icon: 'shield-checkmark-outline' as const, label: t('privacy'), color: Colors.success },
+    { icon: 'language-outline' as const, label: t('changeLanguage'), color: '#8B5CF6', subtitle: language === 'bn' ? 'বাংলা' : 'English' },
+    { icon: 'moon-outline' as const, label: t('darkMode'), color: '#6366F1', toggle: true },
+    { icon: 'help-circle-outline' as const, label: t('helpCenter'), color: Colors.accent },
+    { icon: 'document-text-outline' as const, label: t('terms'), color: Colors.textSecondary },
+    { icon: 'information-circle-outline' as const, label: t('aboutApp'), color: Colors.textMuted },
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: bgColor }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-        <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
-          <Text style={styles.headerTitle}>প্রোফাইল</Text>
+        <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12), backgroundColor: cardBg }]}>
+          <Text style={[styles.headerTitle, { color: textColor }]}>{t('profile')}</Text>
         </View>
 
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: cardBg, borderColor }]}>
           <View style={styles.avatarLarge}>
             <Ionicons name="person" size={36} color={Colors.primary} />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{user?.name || 'ব্যবহারকারী'}</Text>
-            <Text style={styles.profileEmail}>{user?.email || ''}</Text>
-            <Text style={styles.profilePhone}>{user?.phone || ''}</Text>
+            <Text style={[styles.profileName, { color: textColor }]}>{user?.name || 'ব্যবহারকারী'}</Text>
+            <Text style={[styles.profileEmail, { color: textSecColor }]}>{user?.email || ''}</Text>
+            <Text style={[styles.profilePhone, { color: textSecColor }]}>{user?.phone || ''}</Text>
           </View>
         </View>
 
-        <View style={styles.statsRow}>
+        <View style={[styles.statsRow, { backgroundColor: cardBg, borderColor }]}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{savedProperties.length}</Text>
-            <Text style={styles.statLabel}>সংরক্ষিত</Text>
+            <Text style={[styles.statNumber, { color: textColor }]}>{savedProperties.length}</Text>
+            <Text style={[styles.statLabel, { color: textSecColor }]}>{t('saved')}</Text>
           </View>
         </View>
 
-        <View style={styles.menuSection}>
+        <View style={[styles.menuSection, { backgroundColor: cardBg, borderColor }]}>
           {menuItems.map((item, index) => (
             <Pressable
               key={index}
-              style={({ pressed }) => [styles.menuItem, pressed && { backgroundColor: Colors.inputBg }]}
-              onPress={() => handleMenuPress(item.label)}
+              style={({ pressed }) => [styles.menuItem, pressed && { backgroundColor: isDark ? '#2A2A2A' : Colors.inputBg }, { borderBottomColor: isDark ? '#333' : Colors.borderLight }]}
+              onPress={() => item.toggle ? undefined : handleMenuPress(item.label)}
             >
               <View style={[styles.menuIcon, { backgroundColor: item.color + '15' }]}>
                 <Ionicons name={item.icon} size={20} color={item.color} />
               </View>
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.menuLabel, { color: textColor }]}>{item.label}</Text>
+                {item.subtitle && (
+                  <Text style={{ fontSize: 12, fontFamily: 'Inter_400Regular', color: textSecColor, marginTop: 1 }}>{item.subtitle}</Text>
+                )}
+              </View>
+              {item.toggle ? (
+                <Switch
+                  value={isDark}
+                  onValueChange={toggleTheme}
+                  trackColor={{ false: Colors.border, true: Colors.primaryLight }}
+                  thumbColor={isDark ? Colors.primary : '#ccc'}
+                />
+              ) : (
+                <Ionicons name="chevron-forward" size={18} color={isDark ? '#666' : Colors.textMuted} />
+              )}
             </Pressable>
           ))}
         </View>
 
         <Pressable style={({ pressed }) => [styles.logoutBtn, pressed && { opacity: 0.9 }]} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color={Colors.danger} />
-          <Text style={styles.logoutText}>লগআউট</Text>
+          <Text style={styles.logoutText}>{t('logout')}</Text>
         </Pressable>
       </ScrollView>
     </View>

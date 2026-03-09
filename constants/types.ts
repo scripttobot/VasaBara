@@ -62,6 +62,10 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   read: boolean;
+  deleted?: boolean;
+  deletedForUsers?: string[];
+  edited?: boolean;
+  editedAt?: string;
 }
 
 export interface ChatThread {
@@ -92,4 +96,17 @@ export interface SearchFilters {
   furnishing?: string;
   genderPreference?: string;
   parking?: boolean;
+}
+
+export type NotificationType = 'message' | 'new_property' | 'kyc_approved' | 'kyc_declined' | 'system';
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  data?: Record<string, string>;
+  read: boolean;
+  createdAt: string;
 }

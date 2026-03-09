@@ -91,7 +91,7 @@ function PropertyCard({ item, index, onSave, isSaved }: { item: Property; index:
 
 export default function ClientHomeScreen() {
   const insets = useSafeAreaInsets();
-  const { properties, toggleSaveProperty, isPropertySaved } = useApp();
+  const { properties, toggleSaveProperty, isPropertySaved, unreadNotificationCount } = useApp();
   const featuredProperties = properties.filter(p => p.featured && p.available);
   const nearbyProperties = properties.filter(p => p.available);
 
@@ -107,9 +107,13 @@ export default function ClientHomeScreen() {
               <Text style={styles.greeting}>আসসালামু আলাইকুম</Text>
               <Text style={styles.headerTitle}>বাসা খুঁজুন</Text>
             </View>
-            <Pressable style={styles.notifBtn}>
+            <Pressable style={styles.notifBtn} onPress={() => router.push('/notifications')}>
               <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
-              <View style={styles.notifDot} />
+              {unreadNotificationCount > 0 && (
+                <View style={styles.notifBadge}>
+                  <Text style={styles.notifBadgeText}>{unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}</Text>
+                </View>
+              )}
             </Pressable>
           </View>
 
@@ -194,7 +198,8 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   headerTitle: { fontSize: 24, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   notifBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.inputBg, alignItems: 'center', justifyContent: 'center' },
-  notifDot: { position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.danger },
+  notifBadge: { position: 'absolute', top: 4, right: 4, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: Colors.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  notifBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: '#FFFFFF' },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.inputBg,
     borderRadius: 14, paddingHorizontal: 16, height: 50, gap: 10, borderWidth: 1, borderColor: Colors.borderLight,

@@ -8,7 +8,7 @@ import Colors from '@/constants/colors';
 
 export default function OwnerDashboard() {
   const insets = useSafeAreaInsets();
-  const { user, properties, chatThreads } = useApp();
+  const { user, properties, chatThreads, unreadNotificationCount } = useApp();
   const ownerProperties = properties.filter(p => p.ownerId === user?.id);
   const totalViews = ownerProperties.reduce((sum, p) => sum + p.views, 0);
   const ownerChats = chatThreads.length;
@@ -56,8 +56,13 @@ export default function OwnerDashboard() {
             <Text style={styles.greeting}>বাড়িওয়ালা ড্যাশবোর্ড</Text>
             <Text style={styles.headerTitle}>{user?.name || 'স্বাগতম'}</Text>
           </View>
-          <Pressable style={styles.notifBtn} onPress={() => Alert.alert('নোটিফিকেশন', 'কোনো নতুন নোটিফিকেশন নেই')}>
+          <Pressable style={styles.notifBtn} onPress={() => router.push('/notifications')}>
             <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
+            {unreadNotificationCount > 0 && (
+              <View style={styles.notifBadge}>
+                <Text style={styles.notifBadgeText}>{unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}</Text>
+              </View>
+            )}
           </Pressable>
         </View>
 
@@ -128,6 +133,8 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   headerTitle: { fontSize: 24, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   notifBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.inputBg, alignItems: 'center', justifyContent: 'center' },
+  notifBadge: { position: 'absolute', top: 4, right: 4, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: Colors.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  notifBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: '#FFFFFF' },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 24, marginTop: 16, gap: 12 },
   statCard: {
     width: '47%' as any, backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16,
