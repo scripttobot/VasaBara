@@ -20,7 +20,7 @@
     "android": {
       "package": "com.bashvara",
       "adaptiveIcon": {
-        "backgroundColor": "#0A8F7F",
+        "backgroundColor": "#0D7C6E",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"

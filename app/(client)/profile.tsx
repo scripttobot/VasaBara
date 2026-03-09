@@ -152,7 +152,7 @@ export default function ProfileScreen() {
                   value={isDark}
                   onValueChange={toggleTheme}
                   trackColor={{ false: colors.border, true: colors.primaryLight }}
-                  thumbColor={isDark ? colors.primary : '#ccc'}
+                  thumbColor={isDark ? colors.primary : colors.border}
                 />
               ) : (
                 <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
