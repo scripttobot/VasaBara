@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Property, ChatThread, ChatMessage, SavedProperty, SearchFilters, UserRole, AppNotification } from '@/constants/types';
 import { Platform } from 'react-native';
@@ -57,6 +57,8 @@ interface AppContextValue {
   deleteMessage: (chatId: string, messageId: string, forEveryone: boolean) => Promise<boolean>;
   editMessage: (chatId: string, messageId: string, newText: string) => Promise<boolean>;
   deleteAllChatMessages: (chatId: string) => Promise<boolean>;
+  deleteEntireChatThread: (chatId: string) => Promise<boolean>;
+  deleteAllChatsPermananently: () => Promise<boolean>;
   notifications: AppNotification[];
   unreadNotificationCount: number;
   markNotificationRead: (id: string) => Promise<void>;
@@ -89,6 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
   const [authLoading, setAuthLoading] = useState(true);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const cleanupRanRef = useRef(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
@@ -728,6 +731,74 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteEntireChatThread = async (chatId: string): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const chatDoc = await getDoc(doc(db, 'chats', chatId));
+      if (!chatDoc.exists()) return false;
+      const chatData = chatDoc.data();
+      if (!chatData?.participantIds?.includes(user.id)) return false;
+
+      const msgsSnap = await getDocs(collection(db, 'chats', chatId, 'messages'));
+      await Promise.all(msgsSnap.docs.map(d => deleteDoc(d.ref)));
+      await deleteDoc(doc(db, 'chats', chatId));
+      return true;
+    } catch (e) {
+      console.error('Error deleting entire chat thread:', e);
+      return false;
+    }
+  };
+
+  const deleteAllChatsPermananently = async (): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const userChats = chatThreads.filter(t => t.participantIds.includes(user.id));
+      for (const thread of userChats) {
+        const msgsSnap = await getDocs(collection(db, 'chats', thread.id, 'messages'));
+        await Promise.all(msgsSnap.docs.map(d => deleteDoc(d.ref)));
+        await deleteDoc(doc(db, 'chats', thread.id));
+      }
+      return true;
+    } catch (e) {
+      console.error('Error deleting all chats:', e);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (!user || user.role === 'admin') return;
+    if (cleanupRanRef.current) return;
+    if (chatThreads.length === 0) return;
+
+    cleanupRanRef.current = true;
+    let cancelled = false;
+
+    const cleanupOldMessages = async () => {
+      try {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const cutoff = sevenDaysAgo.toISOString();
+
+        for (const thread of chatThreads) {
+          if (cancelled) return;
+          const msgsSnap = await getDocs(collection(db, 'chats', thread.id, 'messages'));
+          const oldMsgs = msgsSnap.docs.filter(d => {
+            const ts = d.data().timestamp;
+            return ts && ts < cutoff;
+          });
+          if (oldMsgs.length > 0 && !cancelled) {
+            await Promise.all(oldMsgs.map(d => deleteDoc(d.ref)));
+          }
+        }
+      } catch (e) {
+        console.error('Error cleaning up old messages:', e);
+      }
+    };
+
+    cleanupOldMessages();
+    return () => { cancelled = true; };
+  }, [user, chatThreads.length]);
+
   const getChatMessages = useCallback(
     (chatId: string): ChatMessage[] => chatMessages[chatId] || [],
     [chatMessages]
@@ -766,6 +837,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       deleteMessage,
       editMessage,
       deleteAllChatMessages,
+      deleteEntireChatThread,
+      deleteAllChatsPermananently,
       notifications,
       unreadNotificationCount,
       markNotificationRead,
