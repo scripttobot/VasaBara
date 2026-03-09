@@ -15,9 +15,9 @@ export default function OwnerProfileScreen() {
     Alert.alert('লগআউট', 'আপনি কি লগআউট করতে চান?', [
       { text: 'না', style: 'cancel' },
       {
-        text: 'হ্যাঁ', style: 'destructive', onPress: () => {
+        text: 'হ্যাঁ', style: 'destructive', onPress: async () => {
           if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          logout();
+          await logout();
           router.replace('/');
         },
       },

@@ -17,9 +17,9 @@ export default function ProfileScreen() {
       {
         text: 'হ্যাঁ',
         style: 'destructive',
-        onPress: () => {
+        onPress: async () => {
           if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          logout();
+          await logout();
           router.replace('/');
         },
       },

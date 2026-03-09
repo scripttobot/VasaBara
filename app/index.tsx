@@ -19,9 +19,10 @@ const { width } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
-  const { setUserRole, isLoggedIn, userRole } = useApp();
+  const { setUserRole, isLoggedIn, userRole, authLoading } = useApp();
 
   React.useEffect(() => {
+    if (authLoading) return;
     if (isLoggedIn && userRole) {
       if (userRole === 'admin') {
         router.replace('/(admin)');
@@ -31,7 +32,7 @@ export default function WelcomeScreen() {
         router.replace('/(owner)');
       }
     }
-  }, [isLoggedIn, userRole]);
+  }, [isLoggedIn, userRole, authLoading]);
 
   const handleRoleSelect = (role: 'client' | 'owner') => {
     setUserRole(role);

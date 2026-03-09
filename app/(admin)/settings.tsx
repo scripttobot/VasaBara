@@ -23,8 +23,8 @@ export default function AdminSettings() {
         {
           text: 'লগআউট',
           style: 'destructive',
-          onPress: () => {
-            logout();
+          onPress: async () => {
+            await logout();
             router.replace('/');
           },
         },
