@@ -23,7 +23,9 @@ export default function WelcomeScreen() {
 
   React.useEffect(() => {
     if (isLoggedIn && userRole) {
-      if (userRole === 'client') {
+      if (userRole === 'admin') {
+        router.replace('/(admin)');
+      } else if (userRole === 'client') {
         router.replace('/(client)');
       } else {
         router.replace('/(owner)');

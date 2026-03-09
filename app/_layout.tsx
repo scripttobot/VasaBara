@@ -19,6 +19,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(auth)" options={{ presentation: "modal", headerShown: false }} />
       <Stack.Screen name="(client)" options={{ headerShown: false }} />
       <Stack.Screen name="(owner)" options={{ headerShown: false }} />
+      <Stack.Screen name="(admin)" options={{ headerShown: false }} />
       <Stack.Screen name="property/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="search" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />

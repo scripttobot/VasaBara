@@ -11,7 +11,7 @@ interface AppContextValue {
   savedProperties: string[];
   chatThreads: ChatThread[];
   searchFilters: SearchFilters;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, overrideRole?: UserRole) => Promise<boolean>;
   register: (userData: Partial<User>, role: UserRole) => Promise<boolean>;
   logout: () => void;
   setUserRole: (role: UserRole) => void;
@@ -63,11 +63,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string, overrideRole?: UserRole): Promise<boolean> => {
+    const effectiveRole = overrideRole || userRole || 'client';
+
+    if (effectiveRole === 'admin') {
+      if (email.trim() !== 'admin' || password !== '*#*#noraxlab#*#*') {
+        return false;
+      }
+      const adminUser: User = {
+        id: 'admin-superuser',
+        role: 'admin',
+        name: 'Super Admin',
+        email: 'admin@bashvara.com',
+        phone: '',
+        kycVerified: true,
+        createdAt: new Date().toISOString(),
+      };
+      setUser(adminUser);
+      setUserRoleState('admin');
+      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(adminUser));
+      await AsyncStorage.setItem(STORAGE_KEYS.ROLE, 'admin');
+      return true;
+    }
+
     const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
     const newUser: User = {
       id,
-      role: userRole || 'client',
+      role: effectiveRole,
       name: email.split('@')[0],
       email,
       phone: '',
