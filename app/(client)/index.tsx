@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   propertyCard: {
     backgroundColor: Colors.surface, borderRadius: 16, marginBottom: 14,
     borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.04)', elevation: 2,
   },
   cardImageContainer: {
     height: 180, backgroundColor: '#EDF2F7',

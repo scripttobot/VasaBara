@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: 14,
     borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1,
+    boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1,
   },
   cardImage: {
     width: 100, height: 100, backgroundColor: '#EDF2F7',

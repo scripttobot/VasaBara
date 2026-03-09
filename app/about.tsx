@@ -114,8 +114,8 @@ const styles = StyleSheet.create({
   logoCircle: {
     width: 80, height: 80, borderRadius: 24, backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center', marginBottom: 16,
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 12, elevation: 8,
+    boxShadow: '0px 4px 12px rgba(10, 143, 127, 0.3)',
+    elevation: 8,
   },
   appName: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   appNameBn: { fontSize: 16, fontFamily: 'Inter_500Medium', color: Colors.textSecondary, marginTop: 2 },

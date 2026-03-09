@@ -206,12 +206,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user || user.role === 'admin') return;
     const q = query(
       collection(db, 'notifications'),
-      where('userId', '==', user.id),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.id)
     );
     const unsub = onSnapshot(q, (snap) => {
       const notifs: AppNotification[] = [];
       snap.forEach(d => notifs.push({ ...d.data(), id: d.id } as AppNotification));
+      notifs.sort((a, b) => {
+        const timeA = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : ((a.createdAt as any)?.toMillis?.() || 0);
+        const timeB = typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : ((b.createdAt as any)?.toMillis?.() || 0);
+        return timeB - timeA;
+      });
       setNotifications(notifs);
     }, (err) => {
       console.error('Error listening to notifications:', err);
