@@ -49,10 +49,7 @@ function ClassicTabLayout() {
           borderTopWidth: 0,
           borderTopColor: colors.border,
           elevation: 0,
-          shadowColor: isDark ? '#000' : '#999',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: isDark ? 0.3 : 0.08,
-          shadowRadius: 8,
+          boxShadow: isDark ? '0px -2px 8px rgba(0,0,0,0.3)' : '0px -2px 8px rgba(153,153,153,0.08)',
           ...(isWeb ? { height: 84, borderTopWidth: 1 } : {}),
         },
         tabBarBackground: () =>

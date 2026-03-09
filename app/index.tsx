@@ -88,8 +88,8 @@ export default function WelcomeScreen() {
     return { opacity };
   });
 
-  const topPadding = insets.top + (Platform.OS === 'web' ? 67 : 20);
-  const bottomPadding = insets.bottom + (Platform.OS === 'web' ? 34 : 20);
+  const topPadding = insets.top + (Platform.OS === 'web' ? 67 : 16);
+  const bottomPadding = insets.bottom + (Platform.OS === 'web' ? 34 : 16);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -98,8 +98,8 @@ export default function WelcomeScreen() {
       <LinearGradient
         colors={colors.backgroundGradient as [string, string, string]}
         style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 0.8, y: 1 }}
       />
 
       <Animated.View
@@ -110,8 +110,8 @@ export default function WelcomeScreen() {
       >
         <LinearGradient
           colors={isDark
-            ? ['transparent', colors.primary + '15', 'transparent']
-            : ['transparent', colors.primary + '08', 'transparent']
+            ? ['transparent', colors.primary + '10', 'transparent']
+            : ['transparent', colors.primary + '06', 'transparent']
           }
           style={StyleSheet.absoluteFill}
           start={{ x: 1, y: 0 }}
@@ -131,7 +131,7 @@ export default function WelcomeScreen() {
             />
             <View style={[styles.logoCircle, {
               backgroundColor: isDark ? colors.card : colors.surface,
-              borderColor: colors.primary,
+              borderColor: isDark ? colors.primary + '40' : colors.primary + '25',
             }]}>
               <LinearGradient
                 colors={colors.primaryGradient}
@@ -139,7 +139,7 @@ export default function WelcomeScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name="home" size={34} color="#FFFFFF" />
+                <Ionicons name="home" size={32} color="#FFFFFF" />
               </LinearGradient>
             </View>
           </View>
@@ -147,7 +147,7 @@ export default function WelcomeScreen() {
             বাসভাড়া
           </Text>
           <Text style={[styles.appSubtitle, { color: colors.primary }]}>
-            BashVara
+            BASHVARA
           </Text>
           <Text style={[styles.tagline, { color: colors.textSecondary }]}>
             আপনার স্বপ্নের বাসা খুঁজে নিন
@@ -166,7 +166,8 @@ export default function WelcomeScreen() {
               onPress={() => handleRoleSelect('client')}
               style={[styles.roleCard, {
                 backgroundColor: colors.card,
-                borderColor: colors.border,
+                borderColor: isDark ? colors.border : colors.primary + '12',
+                boxShadow: isDark ? 'none' : '0px 2px 12px rgba(13, 124, 110, 0.08)',
               }]}
             >
               <LinearGradient
@@ -175,7 +176,7 @@ export default function WelcomeScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name="search" size={26} color="#FFFFFF" />
+                <Ionicons name="search" size={24} color="#FFFFFF" />
               </LinearGradient>
               <View style={styles.roleTextContainer}>
                 <Text style={[styles.roleTitle, { color: colors.textPrimary }]}>
@@ -185,9 +186,7 @@ export default function WelcomeScreen() {
                   ভাড়ার জন্য বাসা/ফ্ল্যাট/অফিস খুঁজুন
                 </Text>
               </View>
-              <View style={[styles.arrowCircle, { backgroundColor: colors.primary + '15' }]}>
-                <Ionicons name="chevron-forward" size={18} color={colors.primary} />
-              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
             </AnimatedPressable>
           </Animated.View>
 
@@ -196,7 +195,8 @@ export default function WelcomeScreen() {
               onPress={() => handleRoleSelect('owner')}
               style={[styles.roleCard, {
                 backgroundColor: colors.card,
-                borderColor: colors.border,
+                borderColor: isDark ? colors.border : colors.secondary + '12',
+                boxShadow: isDark ? 'none' : '0px 2px 12px rgba(232, 96, 60, 0.08)',
               }]}
             >
               <LinearGradient
@@ -205,7 +205,7 @@ export default function WelcomeScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name="key" size={26} color="#FFFFFF" />
+                <Ionicons name="key" size={24} color="#FFFFFF" />
               </LinearGradient>
               <View style={styles.roleTextContainer}>
                 <Text style={[styles.roleTitle, { color: colors.textPrimary }]}>
@@ -215,9 +215,7 @@ export default function WelcomeScreen() {
                   আপনার প্রপার্টি লিস্ট করুন
                 </Text>
               </View>
-              <View style={[styles.arrowCircle, { backgroundColor: colors.secondary + '15' }]}>
-                <Ionicons name="chevron-forward" size={18} color={colors.secondary} />
-              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
             </AnimatedPressable>
           </Animated.View>
         </View>
@@ -226,7 +224,6 @@ export default function WelcomeScreen() {
           entering={FadeInDown.delay(900).duration(600)}
           style={[styles.footer, { paddingBottom: bottomPadding }]}
         >
-          <View style={[styles.footerDividerLine, { backgroundColor: colors.border }]} />
           <View style={styles.footerContent}>
             <Text style={[styles.footerText, { color: colors.textMuted }]}>
               Made in Bangladesh
@@ -252,26 +249,26 @@ const styles = StyleSheet.create({
   },
   logoSection: {
     alignItems: 'center',
-    paddingTop: 50,
+    paddingTop: 44,
   },
   logoWrapper: {
-    marginBottom: 20,
+    marginBottom: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   glowCircle: {
     position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
   },
   logoCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 28,
+    width: 80,
+    height: 80,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    borderWidth: 1.5,
     overflow: 'hidden',
   },
   logoInner: {
@@ -281,90 +278,84 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   appTitle: {
-    fontSize: 38,
+    fontSize: 36,
     fontFamily: 'Inter_700Bold',
-    marginBottom: 2,
+    letterSpacing: -0.5,
+    marginBottom: 1,
   },
   appSubtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter_500Medium',
-    letterSpacing: 4,
-    textTransform: 'uppercase',
-    marginBottom: 10,
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 3.5,
+    marginBottom: 8,
   },
   tagline: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: 'Inter_400Regular',
+    letterSpacing: 0.1,
   },
   roleSection: {
-    paddingHorizontal: 24,
-    gap: 14,
+    paddingHorizontal: 22,
+    gap: 12,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: 'Inter_600SemiBold',
-    marginBottom: 4,
+    letterSpacing: -0.2,
+    marginBottom: 2,
   },
   roleCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 18,
-    padding: 16,
-    gap: 14,
+    borderRadius: 16,
+    padding: 15,
+    gap: 13,
     borderWidth: 1,
   },
   roleIconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   roleTextContainer: {
     flex: 1,
-    gap: 3,
+    gap: 2,
   },
   roleTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: 'Inter_600SemiBold',
+    letterSpacing: -0.2,
   },
   roleSubtitle: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontFamily: 'Inter_400Regular',
-  },
-  arrowCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    letterSpacing: 0.1,
   },
   footer: {
     alignItems: 'center',
     paddingHorizontal: 40,
-    gap: 12,
-  },
-  footerDividerLine: {
-    width: 40,
-    height: 1,
-    borderRadius: 1,
+    gap: 0,
   },
   footerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   footerText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
+    letterSpacing: 0.2,
   },
   footerDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
+    width: 2.5,
+    height: 2.5,
+    borderRadius: 1.25,
   },
   versionText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
+    letterSpacing: 0.2,
   },
 });

@@ -5,7 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { auth } from '@/lib/firebase';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -17,6 +17,7 @@ interface Props {
 }
 
 export function GoogleSignInButton({ label, disabled, onSuccess, onError }: Props) {
+  const colors = useColors();
   const [signingIn, setSigningIn] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -82,7 +83,12 @@ export function GoogleSignInButton({ label, disabled, onSuccess, onError }: Prop
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.btn, pressed && styles.pressed, isDisabled && styles.btnDisabled]}
+      style={({ pressed }) => [
+        styles.btn,
+        { backgroundColor: colors.inputBg, borderColor: colors.borderLight },
+        pressed && styles.pressed,
+        isDisabled && styles.btnDisabled,
+      ]}
       onPress={handlePress}
       disabled={isDisabled}
       testID="google-sign-in-btn"
@@ -92,7 +98,7 @@ export function GoogleSignInButton({ label, disabled, onSuccess, onError }: Prop
       ) : (
         <Ionicons name="logo-google" size={20} color="#DB4437" />
       )}
-      <Text style={styles.text}>{label}</Text>
+      <Text style={[styles.text, { color: colors.textPrimary }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -102,14 +108,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.inputBg,
     borderRadius: 14,
     height: 52,
     gap: 10,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
   },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   btnDisabled: { opacity: 0.5 },
-  text: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  text: { fontSize: 15, fontFamily: 'Inter_600SemiBold' },
 });
