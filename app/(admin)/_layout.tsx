@@ -3,12 +3,13 @@ import { Tabs, router } from "expo-router";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform, StyleSheet, useColorScheme, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import React, { useEffect } from "react";
 import { useApp } from "@/lib/app-context";
-import Colors from "@/constants/colors";
+import { useTheme } from "@/lib/theme-context";
 
 const ADMIN_ACCENT = '#6C5CE7';
+const ADMIN_ACCENT_DARK = '#A78BFA';
 
 function NativeTabLayout() {
   return (
@@ -34,31 +35,36 @@ function NativeTabLayout() {
 }
 
 function ClassicTabLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { isDark, colors } = useTheme();
   const isWeb = Platform.OS === "web";
   const isIOS = Platform.OS === "ios";
+  const accentColor = isDark ? ADMIN_ACCENT_DARK : ADMIN_ACCENT;
+  const tabBg = isDark ? '#1A1A2E' : colors.tabBarBg;
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: ADMIN_ACCENT,
-        tabBarInactiveTintColor: Colors.tabInactive,
+        tabBarActiveTintColor: accentColor,
+        tabBarInactiveTintColor: colors.tabInactive,
         tabBarLabelStyle: { fontFamily: "Inter_500Medium", fontSize: 11 },
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: isIOS ? "transparent" : isDark ? "#1A1A2E" : "#fff",
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: Colors.border,
+          backgroundColor: isIOS ? "transparent" : tabBg,
+          borderTopWidth: 0,
+          borderTopColor: colors.border,
           elevation: 0,
-          ...(isWeb ? { height: 84 } : {}),
+          shadowColor: isDark ? '#000' : '#999',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: isDark ? 0.3 : 0.08,
+          shadowRadius: 8,
+          ...(isWeb ? { height: 84, borderTopWidth: 1 } : {}),
         },
         tabBarBackground: () =>
           isIOS ? (
             <BlurView intensity={100} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
           ) : isWeb ? (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? "#1A1A2E" : "#fff" }]} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: tabBg }]} />
           ) : null,
       }}
     >

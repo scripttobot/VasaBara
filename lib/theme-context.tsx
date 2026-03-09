@@ -1,14 +1,21 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getColors, ThemeColors } from '@/constants/colors';
 
 const THEME_KEY = '@bashvara_theme';
 
 interface ThemeContextValue {
   isDark: boolean;
   toggleTheme: () => void;
+  colors: ThemeColors;
 }
 
-const ThemeContext = createContext<ThemeContextValue>({ isDark: false, toggleTheme: () => {} });
+const defaultColors = getColors(false);
+const ThemeContext = createContext<ThemeContextValue>({
+  isDark: false,
+  toggleTheme: () => {},
+  colors: defaultColors,
+});
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isDark, setIsDark] = useState(false);
@@ -25,8 +32,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem(THEME_KEY, next ? 'dark' : 'light');
   };
 
+  const colors = useMemo(() => getColors(isDark), [isDark]);
+
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, colors }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -34,4 +43,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export function useTheme() {
   return useContext(ThemeContext);
+}
+
+export function useColors() {
+  return useContext(ThemeContext).colors;
 }

@@ -2,15 +2,19 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { useApp } from '@/lib/app-context';
+import { useColors } from '@/lib/theme-context';
 import { GoogleSignInButton } from '@/components/GoogleSignInButton';
-import Colors from '@/constants/colors';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import { DIVISIONS } from '@/constants/locations';
 import * as Haptics from 'expo-haptics';
 
 export default function RegisterClientScreen() {
   const { register, isLoggedIn, userRole } = useApp();
+  const colors = useColors();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -58,92 +62,112 @@ export default function RegisterClientScreen() {
     }
   };
 
+  const webTopInset = Platform.OS === 'web' ? 67 : 0;
+  const webBottomInset = Platform.OS === 'web' ? 34 : 0;
 
   return (
     <KeyboardAwareScrollViewCompat
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={[styles.contentContainer, { paddingBottom: 40 + webBottomInset }]}
       bottomOffset={20}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>ভাড়াটিয়া রেজিস্ট্রেশন</Text>
-        <Text style={styles.subtitle}>আপনার তথ্য দিয়ে অ্যাকাউন্ট তৈরি করুন</Text>
-      </View>
-
-      <View style={styles.form}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>নাম *</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="person-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="আপনার পূর্ণ নাম" placeholderTextColor={Colors.textMuted} value={name} onChangeText={setName} />
+      <Animated.View entering={FadeInDown.delay(100).duration(500)}>
+        <LinearGradient
+          colors={colors.headerGradient as [string, string]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.headerGradient, { paddingTop: webTopInset + 24 }]}
+        >
+          <View style={styles.logoCircle}>
+            <Ionicons name="person-add" size={26} color="#FFFFFF" />
           </View>
-        </View>
+          <Text style={styles.heroTitle}>ভাড়াটিয়া রেজিস্ট্রেশন</Text>
+          <Text style={styles.heroSubtitle}>আপনার তথ্য দিয়ে অ্যাকাউন্ট তৈরি করুন</Text>
+        </LinearGradient>
+      </Animated.View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>ইমেইল *</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="mail-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="example@mail.com" placeholderTextColor={Colors.textMuted} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
+      <View style={styles.formArea}>
+        <Animated.View entering={FadeInDown.delay(150).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>নাম *</Text>
+          <View style={[styles.glassInput, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+            <Ionicons name="person-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+            <TextInput style={[styles.input, { color: colors.textPrimary }]} placeholder="আপনার পূর্ণ নাম" placeholderTextColor={colors.textMuted} value={name} onChangeText={setName} />
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>মোবাইল নম্বর *</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="call-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="01XXXXXXXXX" placeholderTextColor={Colors.textMuted} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>ইমেইল *</Text>
+          <View style={[styles.glassInput, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+            <Ionicons name="mail-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+            <TextInput style={[styles.input, { color: colors.textPrimary }]} placeholder="example@mail.com" placeholderTextColor={colors.textMuted} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>পাসওয়ার্ড *</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="কমপক্ষে ৬ অক্ষর" placeholderTextColor={Colors.textMuted} value={password} onChangeText={setPassword} secureTextEntry />
+        <Animated.View entering={FadeInDown.delay(250).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>মোবাইল নম্বর *</Text>
+          <View style={[styles.glassInput, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+            <Ionicons name="call-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+            <TextInput style={[styles.input, { color: colors.textPrimary }]} placeholder="01XXXXXXXXX" placeholderTextColor={colors.textMuted} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>হোয়াটসঅ্যাপ নম্বর</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="logo-whatsapp" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="01XXXXXXXXX (ঐচ্ছিক)" placeholderTextColor={Colors.textMuted} value={whatsapp} onChangeText={setWhatsapp} keyboardType="phone-pad" />
+        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>পাসওয়ার্ড *</Text>
+          <View style={[styles.glassInput, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+            <Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+            <TextInput style={[styles.input, { color: colors.textPrimary }]} placeholder="কমপক্ষে ৬ অক্ষর" placeholderTextColor={colors.textMuted} value={password} onChangeText={setPassword} secureTextEntry />
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>লিঙ্গ</Text>
+        <Animated.View entering={FadeInDown.delay(350).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>হোয়াটসঅ্যাপ নম্বর</Text>
+          <View style={[styles.glassInput, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+            <Ionicons name="logo-whatsapp" size={20} color={colors.textMuted} style={styles.inputIcon} />
+            <TextInput style={[styles.input, { color: colors.textPrimary }]} placeholder="01XXXXXXXXX (ঐচ্ছিক)" placeholderTextColor={colors.textMuted} value={whatsapp} onChangeText={setWhatsapp} keyboardType="phone-pad" />
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(400).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>লিঙ্গ</Text>
           <View style={styles.chipRow}>
             {genderOptions.map(opt => (
               <Pressable
                 key={opt.id}
-                style={[styles.chip, gender === opt.id && styles.chipActive]}
+                style={[
+                  styles.chip,
+                  { backgroundColor: colors.inputBg, borderColor: colors.borderLight },
+                  gender === opt.id && { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+                ]}
                 onPress={() => setGender(opt.id)}
               >
-                <Text style={[styles.chipText, gender === opt.id && styles.chipTextActive]}>{opt.label}</Text>
+                <Text style={[styles.chipText, { color: colors.textSecondary }, gender === opt.id && { color: colors.primary }]}>{opt.label}</Text>
               </Pressable>
             ))}
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>পেশা</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="briefcase-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="আপনার পেশা" placeholderTextColor={Colors.textMuted} value={occupation} onChangeText={setOccupation} />
+        <Animated.View entering={FadeInDown.delay(450).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>পেশা</Text>
+          <View style={[styles.glassInput, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+            <Ionicons name="briefcase-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
+            <TextInput style={[styles.input, { color: colors.textPrimary }]} placeholder="আপনার পেশা" placeholderTextColor={colors.textMuted} value={occupation} onChangeText={setOccupation} />
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>বিভাগ</Text>
+        <Animated.View entering={FadeInDown.delay(500).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>বিভাগ</Text>
           <View style={styles.chipRow}>
             {DIVISIONS.slice(0, 4).map(div => (
               <Pressable
                 key={div.id}
-                style={[styles.chip, selectedDivision === div.id && styles.chipActive]}
+                style={[
+                  styles.chip,
+                  { backgroundColor: colors.inputBg, borderColor: colors.borderLight },
+                  selectedDivision === div.id && { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+                ]}
                 onPress={() => setSelectedDivision(div.id)}
               >
-                <Text style={[styles.chipText, selectedDivision === div.id && styles.chipTextActive]}>{div.nameBn}</Text>
+                <Text style={[styles.chipText, { color: colors.textSecondary }, selectedDivision === div.id && { color: colors.primary }]}>{div.nameBn}</Text>
               </Pressable>
             ))}
           </View>
@@ -151,71 +175,115 @@ export default function RegisterClientScreen() {
             {DIVISIONS.slice(4).map(div => (
               <Pressable
                 key={div.id}
-                style={[styles.chip, selectedDivision === div.id && styles.chipActive]}
+                style={[
+                  styles.chip,
+                  { backgroundColor: colors.inputBg, borderColor: colors.borderLight },
+                  selectedDivision === div.id && { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+                ]}
                 onPress={() => setSelectedDivision(div.id)}
               >
-                <Text style={[styles.chipText, selectedDivision === div.id && styles.chipTextActive]}>{div.nameBn}</Text>
+                <Text style={[styles.chipText, { color: colors.textSecondary }, selectedDivision === div.id && { color: colors.primary }]}>{div.nameBn}</Text>
               </Pressable>
             ))}
           </View>
-        </View>
+        </Animated.View>
 
-        <Pressable
-          style={({ pressed }) => [styles.registerBtn, pressed && styles.registerBtnPressed, loading && styles.registerBtnDisabled]}
-          onPress={handleRegister}
-          disabled={loading}
-        >
-          <Text style={styles.registerBtnText}>{loading ? 'রেজিস্টার হচ্ছে...' : 'রেজিস্টার করুন'}</Text>
-        </Pressable>
+        <Animated.View entering={FadeInDown.delay(550).duration(500)}>
+          <AnimatedPressable
+            onPress={handleRegister}
+            disabled={loading}
+            gradientColors={colors.primaryGradient}
+            style={styles.registerBtn}
+          >
+            <Text style={styles.registerBtnText}>{loading ? 'রেজিস্টার হচ্ছে...' : 'রেজিস্টার করুন'}</Text>
+          </AnimatedPressable>
+        </Animated.View>
 
-        <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>অথবা</Text>
-          <View style={styles.dividerLine} />
-        </View>
+        <Animated.View entering={FadeInDown.delay(600).duration(500)}>
+          <View style={styles.dividerRow}>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.textMuted }]}>অথবা</Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+          </View>
+        </Animated.View>
 
-        <GoogleSignInButton
-          label="গুগল দিয়ে সাইন আপ"
-          disabled={loading}
-          onSuccess={() => setDidAttempt(true)}
-          onError={() => Alert.alert('ত্রুটি', 'গুগল সাইন আপ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।')}
-        />
+        <Animated.View entering={FadeInDown.delay(650).duration(500)}>
+          <GoogleSignInButton
+            label="গুগল দিয়ে সাইন আপ"
+            disabled={loading}
+            onSuccess={() => setDidAttempt(true)}
+            onError={() => Alert.alert('ত্রুটি', 'গুগল সাইন আপ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।')}
+          />
+        </Animated.View>
       </View>
     </KeyboardAwareScrollViewCompat>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  contentContainer: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 },
-  header: { marginBottom: 24 },
-  title: { fontSize: 24, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginBottom: 4 },
-  subtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  form: { gap: 16 },
+  container: { flex: 1 },
+  contentContainer: { paddingBottom: 40 },
+  headerGradient: {
+    paddingHorizontal: 24,
+    paddingBottom: 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    alignItems: 'center',
+  },
+  logoCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  heroTitle: {
+    fontSize: 22,
+    fontFamily: 'Inter_700Bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.85)',
+  },
+  formArea: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    gap: 16,
+  },
   inputGroup: { gap: 6 },
-  label: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
-  inputWrapper: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.inputBg,
-    borderRadius: 12, paddingHorizontal: 14, height: 50, borderWidth: 1, borderColor: Colors.borderLight,
+  label: { fontSize: 13, fontFamily: 'Inter_500Medium' },
+  glassInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    height: 50,
+    borderWidth: 1,
   },
   inputIcon: { marginRight: 10 },
-  input: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textPrimary },
+  input: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
-    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20,
-    backgroundColor: Colors.inputBg, borderWidth: 1, borderColor: Colors.borderLight,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
   },
-  chipActive: { backgroundColor: Colors.primaryLight, borderColor: Colors.primary },
-  chipText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
-  chipTextActive: { color: Colors.primary },
+  chipText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   registerBtn: {
-    backgroundColor: Colors.primary, height: 52, borderRadius: 14,
-    alignItems: 'center', justifyContent: 'center', marginTop: 12,
+    height: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
   },
-  registerBtnPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
-  registerBtnDisabled: { opacity: 0.6 },
   registerBtnText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
-  dividerText: { marginHorizontal: 16, fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 4 },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { marginHorizontal: 16, fontSize: 13, fontFamily: 'Inter_400Regular' },
 });

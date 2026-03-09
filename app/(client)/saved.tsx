@@ -1,96 +1,95 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, FlatList, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Platform, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '@/lib/app-context';
-import Colors from '@/constants/colors';
+import { useColors } from '@/lib/theme-context';
 import { Property } from '@/constants/types';
+import AnimatedPressable from '@/components/AnimatedPressable';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function SavedScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useColors();
   const { properties, savedProperties, toggleSaveProperty } = useApp();
   const savedItems = properties.filter(p => savedProperties.includes(p.id));
 
-  const renderItem = ({ item }: { item: Property }) => (
-    <Pressable
-      style={({ pressed }) => [styles.card, pressed && { opacity: 0.95, transform: [{ scale: 0.98 }] }]}
-      onPress={() => router.push({ pathname: '/property/[id]', params: { id: item.id } })}
-    >
-      <View style={styles.cardImage}>
-        {item.images && item.images.length > 0 ? (
-          <Image source={{ uri: item.images[0] }} style={styles.cardImageImg} resizeMode="cover" />
-        ) : (
-          <Ionicons name="image-outline" size={28} color={Colors.textMuted} />
-        )}
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-        <View style={styles.cardLocation}>
-          <Ionicons name="location-outline" size={13} color={Colors.textSecondary} />
-          <Text style={styles.cardLocationText} numberOfLines={1}>{item.upazila}, {item.district}</Text>
+  const renderItem = ({ item, index }: { item: Property; index: number }) => (
+    <Animated.View entering={FadeInDown.delay(index * 60).duration(350)}>
+      <AnimatedPressable
+        onPress={() => router.push({ pathname: '/property/[id]', params: { id: item.id } })}
+        style={{
+          flexDirection: 'row' as const,
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: colors.border,
+          overflow: 'hidden' as const,
+        }}
+      >
+        <View style={{ width: 110, height: 110, backgroundColor: colors.inputBg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {item.images && item.images.length > 0 ? (
+            <Image source={{ uri: item.images[0] }} style={{ width: 110, height: 110 }} resizeMode="cover" />
+          ) : (
+            <Ionicons name="image-outline" size={28} color={colors.textMuted} />
+          )}
         </View>
-        <Text style={styles.cardPrice}>{'\u09F3'}{item.rent.toLocaleString()}/মাস</Text>
-      </View>
-      <Pressable style={styles.removeBtn} onPress={() => toggleSaveProperty(item.id)}>
-        <Ionicons name="heart" size={22} color={Colors.danger} />
-      </Pressable>
-    </Pressable>
+        <View style={{ flex: 1, padding: 14, justifyContent: 'center', gap: 5 }}>
+          <Text style={{ fontSize: 15, fontFamily: 'Inter_600SemiBold', color: colors.textPrimary }} numberOfLines={1}>{item.title}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+            <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
+            <Text style={{ fontSize: 12, fontFamily: 'Inter_400Regular', color: colors.textSecondary }} numberOfLines={1}>{item.upazila}, {item.district}</Text>
+          </View>
+          <Text style={{ fontSize: 16, fontFamily: 'Inter_700Bold', color: colors.primary }}>{'\u09F3'}{item.rent.toLocaleString()}/মাস</Text>
+        </View>
+        <AnimatedPressable
+          onPress={() => toggleSaveProperty(item.id)}
+          style={{ padding: 14, alignSelf: 'center' }}
+          scaleValue={0.85}
+        >
+          <Ionicons name="heart" size={24} color={colors.danger} />
+        </AnimatedPressable>
+      </AnimatedPressable>
+    </Animated.View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12) }]}>
-        <Text style={styles.headerTitle}>সংরক্ষিত</Text>
-        <Text style={styles.headerCount}>{savedItems.length} টি</Text>
-      </View>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <LinearGradient
+        colors={colors.headerGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          paddingHorizontal: 24,
+          paddingBottom: 16,
+          paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 14),
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+        }}
+      >
+        <Text style={{ fontSize: 24, fontFamily: 'Inter_700Bold', color: '#FFFFFF' }}>সংরক্ষিত</Text>
+        <Text style={{ fontSize: 14, fontFamily: 'Inter_500Medium', color: 'rgba(255,255,255,0.8)', paddingBottom: 2 }}>{savedItems.length} টি</Text>
+      </LinearGradient>
 
       <FlatList
         data={savedItems}
         renderItem={renderItem}
         keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ flexGrow: 1, padding: 24, gap: 12, paddingBottom: 100 }}
+        scrollEnabled={savedItems.length > 0}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="heart-outline" size={48} color={Colors.textMuted} />
-            <Text style={styles.emptyTitle}>কোনো সংরক্ষিত প্রপার্টি নেই</Text>
-            <Text style={styles.emptySubtitle}>পছন্দের প্রপার্টিতে হার্ট বাটন চাপুন</Text>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100, gap: 12 }}>
+            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primary + '15', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="heart-outline" size={40} color={colors.primary} />
+            </View>
+            <Text style={{ fontSize: 18, fontFamily: 'Inter_600SemiBold', color: colors.textPrimary, marginTop: 4 }}>কোনো সংরক্ষিত প্রপার্টি নেই</Text>
+            <Text style={{ fontSize: 14, fontFamily: 'Inter_400Regular', color: colors.textSecondary, textAlign: 'center' }}>পছন্দের প্রপার্টিতে হার্ট বাটন চাপুন</Text>
           </View>
         }
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    paddingHorizontal: 24, paddingBottom: 12, backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
-  },
-  headerTitle: { fontSize: 24, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  headerCount: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.textSecondary, paddingBottom: 2 },
-  listContent: { flexGrow: 1, padding: 24, gap: 12, paddingBottom: 100 },
-  card: {
-    flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: 14,
-    borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
-    boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.03)', elevation: 1,
-  },
-  cardImage: {
-    width: 100, height: 100, backgroundColor: '#EDF2F7',
-    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-  },
-  cardImageImg: {
-    width: 100, height: 100,
-  },
-  cardContent: { flex: 1, padding: 12, justifyContent: 'center', gap: 4 },
-  cardTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
-  cardLocation: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  cardLocationText: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  cardPrice: { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.primary },
-  removeBtn: { padding: 12, alignSelf: 'center' },
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 100, gap: 8 },
-  emptyTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
-  emptySubtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, textAlign: 'center' },
-});

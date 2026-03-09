@@ -2,14 +2,18 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { useApp } from '@/lib/app-context';
+import { useColors } from '@/lib/theme-context';
 import { GoogleSignInButton } from '@/components/GoogleSignInButton';
-import Colors from '@/constants/colors';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import * as Haptics from 'expo-haptics';
 
 export default function LoginScreen() {
   const { login, userRole, isLoggedIn } = useApp();
+  const colors = useColors();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -55,132 +59,172 @@ export default function LoginScreen() {
     }
   };
 
+  const webTopInset = Platform.OS === 'web' ? 67 : 0;
+  const webBottomInset = Platform.OS === 'web' ? 34 : 0;
+
   return (
     <KeyboardAwareScrollViewCompat
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={[styles.contentContainer, { paddingTop: 0, paddingBottom: 40 + webBottomInset }]}
       bottomOffset={20}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>স্বাগতম!</Text>
-        <Text style={styles.subtitle}>
-          {userRole === 'owner' ? 'বাড়িওয়ালা হিসেবে লগইন করুন' : 'ভাড়াটিয়া হিসেবে লগইন করুন'}
-        </Text>
-      </View>
+      <Animated.View entering={FadeInDown.delay(100).duration(500)}>
+        <LinearGradient
+          colors={colors.headerGradient as [string, string]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.headerGradient, { paddingTop: webTopInset + 32 }]}
+        >
+          <View style={styles.logoCircle}>
+            <Ionicons name="home" size={28} color="#FFFFFF" />
+          </View>
+          <Text style={styles.heroTitle}>স্বাগতম!</Text>
+          <Text style={styles.heroSubtitle}>
+            {userRole === 'owner' ? 'বাড়িওয়ালা হিসেবে লগইন করুন' : 'ভাড়াটিয়া হিসেবে লগইন করুন'}
+          </Text>
+        </LinearGradient>
+      </Animated.View>
 
-      <View style={styles.form}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>ইমেইল / মোবাইল</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="mail-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
+      <View style={styles.formArea}>
+        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>ইমেইল / মোবাইল</Text>
+          <View style={[styles.glassInput, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+            <Ionicons name="mail-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.textPrimary }]}
               placeholder="আপনার ইমেইল বা মোবাইল নম্বর"
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
             />
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>পাসওয়ার্ড</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
+        <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.inputGroup}>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>পাসওয়ার্ড</Text>
+          <View style={[styles.glassInput, { backgroundColor: colors.inputBg, borderColor: colors.borderLight }]}>
+            <Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.textPrimary }]}
               placeholder="আপনার পাসওয়ার্ড"
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
             />
             <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.textMuted} />
+              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textMuted} />
             </Pressable>
           </View>
-        </View>
+        </Animated.View>
 
-        <Pressable style={styles.forgotBtn}>
-          <Text style={styles.forgotText}>পাসওয়ার্ড ভুলে গেছেন?</Text>
-        </Pressable>
+        <Animated.View entering={FadeInDown.delay(350).duration(500)}>
+          <Pressable style={styles.forgotBtn}>
+            <Text style={[styles.forgotText, { color: colors.primary }]}>পাসওয়ার্ড ভুলে গেছেন?</Text>
+          </Pressable>
+        </Animated.View>
 
-        <Pressable
-          style={({ pressed }) => [styles.loginBtn, pressed && styles.loginBtnPressed, loading && styles.loginBtnDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          <Text style={styles.loginBtnText}>{loading ? 'লগইন হচ্ছে...' : 'লগইন করুন'}</Text>
-        </Pressable>
-      </View>
+        <Animated.View entering={FadeInDown.delay(400).duration(500)}>
+          <AnimatedPressable
+            onPress={handleLogin}
+            disabled={loading}
+            gradientColors={colors.primaryGradient}
+            style={styles.loginBtn}
+          >
+            <Text style={styles.loginBtnText}>{loading ? 'লগইন হচ্ছে...' : 'লগইন করুন'}</Text>
+          </AnimatedPressable>
+        </Animated.View>
 
-      <View style={styles.dividerRow}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>অথবা</Text>
-        <View style={styles.dividerLine} />
-      </View>
+        <Animated.View entering={FadeInDown.delay(450).duration(500)} style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+          <Text style={[styles.dividerText, { color: colors.textMuted }]}>অথবা</Text>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+        </Animated.View>
 
-      <View style={styles.socialRow}>
-        <GoogleSignInButton
-          label="গুগল দিয়ে লগইন"
-          disabled={loading}
-          onSuccess={() => setDidAttemptLogin(true)}
-          onError={() => Alert.alert('ত্রুটি', 'গুগল লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।')}
-        />
-      </View>
+        <Animated.View entering={FadeInDown.delay(500).duration(500)} style={styles.socialRow}>
+          <GoogleSignInButton
+            label="গুগল দিয়ে লগইন"
+            disabled={loading}
+            onSuccess={() => setDidAttemptLogin(true)}
+            onError={() => Alert.alert('ত্রুটি', 'গুগল লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।')}
+          />
+        </Animated.View>
 
-      <View style={styles.registerRow}>
-        <Text style={styles.registerText}>অ্যাকাউন্ট নেই? </Text>
-        <Pressable onPress={goToRegister}>
-          <Text style={styles.registerLink}>রেজিস্টার করুন</Text>
-        </Pressable>
+        <Animated.View entering={FadeInDown.delay(550).duration(500)} style={styles.registerRow}>
+          <Text style={[styles.registerText, { color: colors.textSecondary }]}>অ্যাকাউন্ট নেই? </Text>
+          <Pressable onPress={goToRegister}>
+            <Text style={[styles.registerLink, { color: colors.primary }]}>রেজিস্টার করুন</Text>
+          </Pressable>
+        </Animated.View>
       </View>
     </KeyboardAwareScrollViewCompat>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  contentContainer: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 },
-  header: { marginBottom: 32 },
-  title: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginBottom: 6 },
-  subtitle: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  form: { gap: 18 },
+  container: { flex: 1 },
+  contentContainer: { paddingBottom: 40 },
+  headerGradient: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    alignItems: 'center',
+  },
+  logoCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  heroTitle: {
+    fontSize: 26,
+    fontFamily: 'Inter_700Bold',
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  heroSubtitle: {
+    fontSize: 15,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.85)',
+  },
+  formArea: {
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    gap: 18,
+  },
   inputGroup: { gap: 6 },
-  label: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
-  inputWrapper: {
+  label: { fontSize: 14, fontFamily: 'Inter_500Medium' },
+  glassInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.inputBg,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
     height: 52,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
   },
   inputIcon: { marginRight: 10 },
-  input: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textPrimary },
+  input: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular' },
   eyeBtn: { padding: 4 },
   forgotBtn: { alignSelf: 'flex-end' },
-  forgotText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.primary },
+  forgotText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   loginBtn: {
-    backgroundColor: Colors.primary,
     height: 52,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
   },
-  loginBtnPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
-  loginBtnDisabled: { opacity: 0.6 },
   loginBtnText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 28 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
-  dividerText: { marginHorizontal: 16, fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
-  socialRow: { marginBottom: 28 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 4 },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { marginHorizontal: 16, fontSize: 13, fontFamily: 'Inter_400Regular' },
+  socialRow: {},
   registerRow: { flexDirection: 'row', justifyContent: 'center' },
-  registerText: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  registerLink: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
+  registerText: { fontSize: 14, fontFamily: 'Inter_400Regular' },
+  registerLink: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
 });
