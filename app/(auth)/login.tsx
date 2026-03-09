@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Alert, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Alert, Platform, useColorScheme } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
@@ -8,11 +8,24 @@ import Colors from '@/constants/colors';
 import * as Haptics from 'expo-haptics';
 
 export default function LoginScreen() {
-  const { login, googleLogin, userRole } = useApp();
+  const { login, googleLogin, userRole, isLoggedIn } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [didAttemptLogin, setDidAttemptLogin] = useState(false);
+
+  React.useEffect(() => {
+    if (didAttemptLogin && isLoggedIn && userRole) {
+      if (userRole === 'admin') {
+        router.replace('/(admin)');
+      } else if (userRole === 'owner') {
+        router.replace('/(owner)');
+      } else {
+        router.replace('/(client)');
+      }
+    }
+  }, [didAttemptLogin, isLoggedIn, userRole]);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -27,13 +40,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (success) {
-      if (isAdmin) {
-        router.replace('/(admin)');
-      } else if (userRole === 'owner') {
-        router.replace('/(owner)');
-      } else {
-        router.replace('/(client)');
-      }
+      setDidAttemptLogin(true);
     } else {
       Alert.alert('ত্রুটি', 'ইমেইল বা পাসওয়ার্ড সঠিক নয়। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
@@ -46,11 +53,7 @@ export default function LoginScreen() {
     const success = await googleLogin(role);
     setLoading(false);
     if (success) {
-      if (role === 'owner') {
-        router.replace('/(owner)');
-      } else {
-        router.replace('/(client)');
-      }
+      setDidAttemptLogin(true);
     } else {
       Alert.alert('ত্রুটি', 'গুগল লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
@@ -131,12 +134,14 @@ export default function LoginScreen() {
         <View style={styles.dividerLine} />
       </View>
 
-      <View style={styles.socialRow}>
-        <Pressable style={styles.googleBtn} onPress={handleGoogleLogin} disabled={loading}>
-          <Ionicons name="logo-google" size={20} color="#DB4437" />
-          <Text style={styles.googleBtnText}>গুগল দিয়ে লগইন</Text>
-        </Pressable>
-      </View>
+      {Platform.OS === 'web' && (
+        <View style={styles.socialRow}>
+          <Pressable style={styles.googleBtn} onPress={handleGoogleLogin} disabled={loading}>
+            <Ionicons name="logo-google" size={20} color="#DB4437" />
+            <Text style={styles.googleBtnText}>গুগল দিয়ে লগইন</Text>
+          </Pressable>
+        </View>
+      )}
 
       <View style={styles.registerRow}>
         <Text style={styles.registerText}>অ্যাকাউন্ট নেই? </Text>

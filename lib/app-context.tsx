@@ -7,9 +7,6 @@ import { auth, db, googleProvider } from '@/lib/firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
-  signInWithCredential,
-  GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
   User as FirebaseUser,
@@ -308,6 +305,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
+      const { signInWithPopup } = await import('firebase/auth');
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
 
@@ -381,7 +379,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
       };
 
-      await setDoc(doc(db, 'users', credential.user.uid), removeUndefined(newUser));
+      try {
+        await setDoc(doc(db, 'users', credential.user.uid), removeUndefined(newUser));
+      } catch (firestoreErr: any) {
+        console.warn('Firestore write failed during registration:', firestoreErr.code);
+      }
       setUser(newUser as User);
       setUserRoleState(role);
       await AsyncStorage.setItem(STORAGE_KEYS.ROLE, role);

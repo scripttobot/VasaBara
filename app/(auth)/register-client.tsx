@@ -9,7 +9,7 @@ import { DIVISIONS } from '@/constants/locations';
 import * as Haptics from 'expo-haptics';
 
 export default function RegisterClientScreen() {
-  const { register, googleLogin } = useApp();
+  const { register, googleLogin, isLoggedIn, userRole } = useApp();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -19,6 +19,17 @@ export default function RegisterClientScreen() {
   const [occupation, setOccupation] = useState('');
   const [selectedDivision, setSelectedDivision] = useState('');
   const [loading, setLoading] = useState(false);
+  const [didAttempt, setDidAttempt] = useState(false);
+
+  React.useEffect(() => {
+    if (didAttempt && isLoggedIn && userRole) {
+      if (userRole === 'owner') {
+        router.replace('/(owner)');
+      } else {
+        router.replace('/(client)');
+      }
+    }
+  }, [didAttempt, isLoggedIn, userRole]);
 
   const genderOptions = [
     { id: 'male', label: 'পুরুষ' },
@@ -40,7 +51,7 @@ export default function RegisterClientScreen() {
     );
     setLoading(false);
     if (success) {
-      router.replace('/(client)');
+      setDidAttempt(true);
     } else {
       Alert.alert('ত্রুটি', 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। ইমেইল আগে ব্যবহার হয়ে থাকতে পারে বা পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।');
     }
@@ -52,7 +63,7 @@ export default function RegisterClientScreen() {
     const success = await googleLogin('client');
     setLoading(false);
     if (success) {
-      router.replace('/(client)');
+      setDidAttempt(true);
     } else {
       Alert.alert('ত্রুটি', 'গুগল সাইন আপ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
@@ -167,16 +178,20 @@ export default function RegisterClientScreen() {
           <Text style={styles.registerBtnText}>{loading ? 'রেজিস্টার হচ্ছে...' : 'রেজিস্টার করুন'}</Text>
         </Pressable>
 
-        <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>অথবা</Text>
-          <View style={styles.dividerLine} />
-        </View>
+        {Platform.OS === 'web' && (
+          <>
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>অথবা</Text>
+              <View style={styles.dividerLine} />
+            </View>
 
-        <Pressable style={styles.googleBtn} onPress={handleGoogleRegister} disabled={loading}>
-          <Ionicons name="logo-google" size={20} color="#DB4437" />
-          <Text style={styles.googleBtnText}>গুগল দিয়ে সাইন আপ</Text>
-        </Pressable>
+            <Pressable style={styles.googleBtn} onPress={handleGoogleRegister} disabled={loading}>
+              <Ionicons name="logo-google" size={20} color="#DB4437" />
+              <Text style={styles.googleBtnText}>গুগল দিয়ে সাইন আপ</Text>
+            </Pressable>
+          </>
+        )}
       </View>
     </KeyboardAwareScrollViewCompat>
   );

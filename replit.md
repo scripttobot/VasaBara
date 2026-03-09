@@ -18,8 +18,9 @@ A hybrid mobile app (React Native / Expo) for finding rental properties in Bangl
 - **Services Used**: Auth, Firestore, Storage
 - **Collections**: `users`, `properties`, `chats`
 - **Subcollections**: `users/{uid}/savedProperties`
-- **Auth Methods**: Email/Password
+- **Auth Methods**: Email/Password, Google Sign-In (web only)
 - **Environment Variables**: All prefixed with `EXPO_PUBLIC_FIREBASE_*`
+- **Important**: Firestore rules must allow read/write; Replit domain must be added to Firebase Auth authorized domains
 
 ## Three User Roles
 1. **Client (ভাড়াটিয়া)**: Search and browse rental properties
@@ -93,7 +94,8 @@ server/
 
 ### Key Features
 - Role-based access (Client / Owner / Admin)
-- Firebase Auth with email/password
+- Firebase Auth with email/password + Google Sign-In (web)
+- Graceful fallback when Firestore permissions fail
 - Firestore real-time property listings
 - 4-level location selector (Division > District > Upazila)
 - Property details with contact options (Call, WhatsApp)
